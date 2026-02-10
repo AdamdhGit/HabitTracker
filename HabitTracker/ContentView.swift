@@ -193,23 +193,25 @@ struct ContentView: View {
                 
       
                 
+                if !showHabitCreation{
                     // Floating bottom-center button
-                       VStack {
-                           Spacer() // push to bottom
+                    VStack {
+                        Spacer() // push to bottom
                         
-                               Button {
-                                   showHabitCreation = true
-                                   isAddEntryFocused = true
-                               } label: {
-                                   Image(systemName: "plus")
-                                       .font(.system(size: 16, weight: .bold))
-                                       .foregroundColor(.white)
-                                       .frame(width: 40, height: 40)
-                                       
-                               }
-                               .buttonStyle(.glass)
-                          
-                       }
+                        Button {
+                            showHabitCreation = true
+                            isAddEntryFocused = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 40, height: 40)
+                            
+                        }
+                        .buttonStyle(.glass)
+                        
+                    }
+                }
                 
                 // Show InputView above keyboard
                            if showHabitCreation {
