@@ -252,8 +252,8 @@ struct HabitCreationView: View {
                
                 
                 
-                Spacer().frame(height: 75)
-            }.preferredColorScheme(.dark)
+                //Spacer().frame(height: 75)
+            }//.preferredColorScheme(.dark)
         }
         .onChange(of: notificationsEnabled) { _, _ in
             withAnimation{

@@ -11,7 +11,7 @@ import SwiftUI
 @main
 struct HabitTrackerApp: App {
     
-    private var dataController = DataController()
+    var dataController = DataController()
     
     var body: some Scene {
         WindowGroup {

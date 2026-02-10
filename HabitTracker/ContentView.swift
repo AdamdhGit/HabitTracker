@@ -38,17 +38,30 @@ struct ContentView: View {
     
     @FocusState var isAddEntryFocused: Bool
     
+    @State private var showWobble = false
+    
+    
+    @State private var completedCount: Int = 0
+    @State private var totalHabits: Int = 0 // Update this when habits are added/deleted
+
+    var progressAmount: CGFloat {
+        guard totalHabits > 0 else { return 0 }
+        return CGFloat(completedCount) / CGFloat(totalHabits)
+    }
+
+
+    
     var body: some View {
 
         NavigationStack{
             ZStack(alignment: .top){
                 
                 //list habits
-                
                 List{
                     
-                    //reminders
                     
+                    
+                    //reminders
                     if showReminders {
                         VStack(alignment: .leading) {
                             HStack{
@@ -83,27 +96,7 @@ struct ContentView: View {
                                     .tint(colorScheme == .dark ? .white : .black)
                                     .frame(height: 120) // reasonable size
                                     .padding(4)
-                                /*
-                                    .onChange(of: reminderText) { oldValue, newValue in
-                                        // enforce character limit
-                                        if newValue.count > 250 {
-                                            reminderText = String(newValue.prefix(250))
-                                        }
-                                    }
-                                 */
-                                /*
-                                    .toolbar {
-                                        ToolbarItemGroup(placement: .keyboard) {
-                                            Spacer()
-                                            Button {
-                                                isReminderFocused = false
-                                            } label: {
-                                                Image(systemName: "keyboard.chevron.compact.down")
-                                                    .font(.title3)
-                                            }
-                                        }
-                                    }
-                                 */
+                        
                                 
                             }
                             .background(
@@ -128,7 +121,7 @@ struct ContentView: View {
                             .listRowSeparator(.hidden)
                         
                         ForEach(goalHabits) { i in
-                            HabitRow(habit: i)
+                            HabitRow(completedCount: $completedCount, habit: i)
                                
                             
                             
@@ -144,13 +137,15 @@ struct ContentView: View {
                     
                     // show "Daily" only if there’s at least one
                     if !dailyHabits.isEmpty {
-                        Text("Daily")
-                            .font(.title3)
-                            .kerning(0.5)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 12)
-                            .listRowSeparator(.hidden)
+                        HStack{
+                            Text("Daily")
+                                .font(.title3)
+                                .kerning(0.5)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 12)
+                                .listRowSeparator(.hidden)
+                        }
                     }
                     
                     
@@ -173,7 +168,7 @@ struct ContentView: View {
                             //habits
                             
                             ForEach(items) { i in
-                                HabitRow(habit: i)
+                                HabitRow(completedCount: $completedCount, habit: i)
                                   
                                 
                             }
@@ -206,72 +201,114 @@ struct ContentView: View {
                         } label: {
                             Image(systemName: "plus")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                                 .frame(width: 40, height: 40)
+                                
                             
                         }
+                    
+                        
                         .buttonStyle(.glass)
                         
                     }
                 }
                     
-                           if showHabitCreation {
-                               VStack{
-                                   //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
-                                   
-                                   Spacer()
+                if showHabitCreation {
+                            VStack{
+                                //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
+                                
+                            
+                                
+                                HabitCreationView(showHabitCreation: $showHabitCreation,
+                                                    isAddEntryFocused: $isAddEntryFocused)
+                                
+                                //.frame(height: 450)
+                                .glassEffect(in: .rect(cornerRadius: 16.0))
+                                .cornerRadius(16)
+                                .padding(.horizontal, 5)
+                            
+                                //animate new entry bouncing in
+                                .scaleEffect(x: showWobble ? 1.0 : 0.97, y: showWobble ? 1.0 : 1.03) // minimal squish
+                                        .offset(y: showWobble ? 0 : 350) // slide in from bottom
+                                        .opacity(showWobble ? 1 : 0)
+                                        .onAppear {
+                                            withAnimation(.interpolatingSpring(mass: 1.0, stiffness: 180, damping: 16, initialVelocity: 3)) {
+                                                showWobble = true
+                                            }
+                                        }
+                                        .onDisappear {
+                                            showWobble = false
+                                        }
+                                        
+                                        
+                            }
+                            .ignoresSafeArea(.keyboard)
+                        
+                            
                                     
-                                   HabitCreationView(showHabitCreation: $showHabitCreation,
-                                                     isAddEntryFocused: $isAddEntryFocused)
-                                   
-                                   //.frame(height: 450)
-                                   .glassEffect(in: .rect(cornerRadius: 16.0))
-                                   .cornerRadius(16)
-                                   .padding(.horizontal, 5)
-                                   
-                                   .transition(.move(edge: .bottom).combined(with: .opacity))
-                                   .animation(.easeInOut, value: showHabitCreation)
-                                   
-                               }
-                           }
+                                    
+                        }
                 
-                
-                
-
-                
-                
-               
+            
                 
             }
-
+            .onAppear {
+                updateTally()
+            }
+            // Also watch for database changes to keep totalHabits accurate
+            .onChange(of: habits.count) {
+                updateTally()
+            }
             .toolbar{
                      
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button{
+                    
+                    ToolbarItem(placement: .navigationBarLeading) {
                         
-                    }label:{
-                        Text("02/08/2026").font(.subheadline).padding()
+                        HStack{
+                            //MARK: progress
+                            VStack{
+                                ZStack {
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 3) // background
+                                        .frame(width: 20, height: 20)
+                                    
+                                    Circle()
+                                        .trim(from: 0, to: progressAmount)
+                                        .stroke(Color.green, lineWidth: 3)
+                                        .rotationEffect(.degrees(-90))
+                                        .frame(width: 20, height: 20)
+                                        
+                                }
+                            }.padding(.leading)
+                            
+                            Button{
+                                
+                            }label:{
+                                Text("02/08/2026").font(.subheadline).padding()
+                            }
+                            
+                            
+                        }
+                        
                     }
-                 
-                }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        
+                        Menu {
+                            Toggle("Show Reminders", isOn: $showReminders)
+                        } label: {
+                            Image(systemName: "slider.horizontal.2.square")
+                                .font(.system(size: 16))
+                            
+                            
+                                .contentShape(Circle()) //tells SwiftUI the hit shape
+                                .frame(height: 40)
+                            
+                        }.buttonStyle(.plain)
+                        
+                        
+                    }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    
-                    Menu {
-                        Toggle("Show Reminders", isOn: $showReminders)
-                    } label: {
-                        Image(systemName: "slider.horizontal.2.square")
-                            .font(.system(size: 16))
-                         
-                          
-                            .contentShape(Circle()) //tells SwiftUI the hit shape
-                            .frame(height: 40)
-                           
-                    }.buttonStyle(.plain)
-                    
-               
-                }
 
             }
         }.preferredColorScheme(.dark)
@@ -279,6 +316,11 @@ struct ContentView: View {
         
         
        
+    }
+    
+    func updateTally() {
+        totalHabits = habits.count
+        completedCount = habits.filter { $0.isCompleted }.count
     }
     
     func returnRowColor(habit: Habit) -> Color {
@@ -297,7 +339,7 @@ struct ContentView: View {
         }
     }
 
-    
+
     
 }
 
@@ -346,7 +388,10 @@ struct ContentView: View {
 }
 
 
+
+
 struct HabitRow: View {
+    @Binding var completedCount: Int
     @ObservedObject var habit: Habit
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.managedObjectContext) private var moc
@@ -355,7 +400,15 @@ struct HabitRow: View {
         HStack(spacing: 12) {
             Button {
                 print("tapped button")
+               
                 habit.isCompleted.toggle()
+                
+                if habit.isCompleted {
+                        completedCount += 1
+                    } else {
+                        completedCount -= 1
+                    }
+                
                 do {
                     try moc.save()
                 } catch {
@@ -419,6 +472,7 @@ struct HabitRow: View {
             }
         }
     }
+    
     func returnRowColor(habit: Habit) -> Color {
         if colorScheme == .dark {
             if habit.isCompleted {
@@ -434,5 +488,6 @@ struct HabitRow: View {
             }
         }
     }
+    
 }
 

@@ -9,7 +9,6 @@ import CoreData
 import Foundation
 
 class DataController {
-
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
@@ -25,5 +24,7 @@ class DataController {
                 fatalError("Core Data failed to load: \(error)")
             }
         }
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
     }
 }
