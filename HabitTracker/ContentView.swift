@@ -196,7 +196,9 @@ struct ContentView: View {
                 if !showHabitCreation{
                     // Floating bottom-center button
                     VStack {
+                        
                         Spacer() // push to bottom
+                        //MARK: this is what puts it right on keyboard when keyboard is open
                         
                         Button {
                             showHabitCreation = true
@@ -212,23 +214,27 @@ struct ContentView: View {
                         
                     }
                 }
-                
-                // Show InputView above keyboard
+                    
                            if showHabitCreation {
                                VStack{
+                                   //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
+                                   
                                    Spacer()
+                                    
                                    HabitCreationView(showHabitCreation: $showHabitCreation,
                                                      isAddEntryFocused: $isAddEntryFocused)
                                    
-                                   .frame(height: 140)
+                                   //.frame(height: 450)
                                    .glassEffect(in: .rect(cornerRadius: 16.0))
                                    .cornerRadius(16)
                                    .padding(.horizontal, 5)
                                    
                                    .transition(.move(edge: .bottom).combined(with: .opacity))
                                    .animation(.easeInOut, value: showHabitCreation)
+                                   
                                }
                            }
+                
                 
                 
 
@@ -268,7 +274,7 @@ struct ContentView: View {
                 }
 
             }
-        }
+        }.preferredColorScheme(.dark)
                
         
         
@@ -296,12 +302,49 @@ struct ContentView: View {
 }
 
 #Preview {
-    
-    let dataController = DataController()
-        
-       ContentView().environment(\.managedObjectContext, dataController.container.viewContext)
-    
+    let controller = DataController(inMemory: true)
+    let context = controller.container.viewContext
+
+    // MARK: Goals
+    let goal1 = Habit(context: context)
+    goal1.title = "Build Habit Tracker"
+    goal1.category = "Goals"
+    goal1.time = "Morning"
+    goal1.isCompleted = false
+
+    let goal2 = Habit(context: context)
+    goal2.title = "Ship First Version"
+    goal2.category = "Goals"
+    goal2.time = "Evening"
+    goal2.isCompleted = true
+
+    // MARK: Daily - Morning
+    let morning = Habit(context: context)
+    morning.title = "Drink Water"
+    morning.category = "Daily"
+    morning.time = "Morning"
+    morning.isCompleted = true
+
+    // MARK: Daily - Afternoon
+    let afternoon = Habit(context: context)
+    afternoon.title = "Walk Outside"
+    afternoon.category = "Daily"
+    afternoon.time = "Afternoon"
+    afternoon.isCompleted = false
+
+    // MARK: Daily - Evening
+    let evening = Habit(context: context)
+    evening.title = "Read 10 Pages"
+    evening.category = "Daily"
+    evening.time = "Evening"
+    evening.isCompleted = false
+
+    try? context.save()
+
+    return ContentView()
+        .environment(\.managedObjectContext, context)
 }
+
 
 struct HabitRow: View {
     @ObservedObject var habit: Habit

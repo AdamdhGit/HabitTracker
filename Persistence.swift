@@ -8,14 +8,21 @@
 import CoreData
 import Foundation
 
-class DataController  {
-    
-    let container = NSPersistentContainer(name: "HabitTracker")
+class DataController {
 
-    init() {
-        container.loadPersistentStores { description, error in
+    let container: NSPersistentContainer
+
+    init(inMemory: Bool = false) {
+        container = NSPersistentContainer(name: "HabitTracker")
+
+        if inMemory {
+            container.persistentStoreDescriptions.first?.url =
+                URL(fileURLWithPath: "/dev/null")
+        }
+
+        container.loadPersistentStores { _, error in
             if let error = error {
-                print("Core Data failed to load: \(error.localizedDescription)")
+                fatalError("Core Data failed to load: \(error)")
             }
         }
     }
