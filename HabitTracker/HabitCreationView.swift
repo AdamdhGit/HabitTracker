@@ -36,11 +36,15 @@ struct HabitCreationView: View {
     @State private var hasSpecificTime = false
     @State private var specificTime = Date()
     
+    @State private var repeatingEnabled = true
+    @State private var selectedDate = Date()
+    
     let notificationOptions = [
         "At time",
-        "5 min before",
-        "15 min before",
-        "30 min before"
+        "5 minutes before",
+        "15 minutes before",
+        "30 minutes before",
+        "1 hour before"
     ]
     
     
@@ -49,7 +53,7 @@ struct HabitCreationView: View {
         ZStack{
             
             ScrollView{
-                //category
+                //X and Save
                 HStack{
                     Button{
                         newHabitText = ""
@@ -98,6 +102,7 @@ struct HabitCreationView: View {
                 }.padding()
                 
                 //MARK: daily/goals picker
+                /*
                 HStack{
                     Picker(selection: $newHabitCategory) {
                         ForEach(categories, id: \.self) { category in
@@ -118,6 +123,7 @@ struct HabitCreationView: View {
                     
                     Spacer()
                 }.padding(.horizontal).padding(.bottom, 10)
+                */
                 
                 HStack {
                     TextField("\(newHabitCategory == "Daily" ? "ex: Workout" : "ex: Travel Abroad")", text: $newHabitText)
@@ -131,7 +137,6 @@ struct HabitCreationView: View {
                         )
                         .foregroundStyle(colorScheme == .dark ? .white : .black)
                     
-                    if newHabitCategory == "Daily" {
                         
                         Picker(selection: $newHabitTime) {
                             ForEach(timesOfDay, id: \.self) { time in
@@ -149,7 +154,7 @@ struct HabitCreationView: View {
                                 .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
                                 .frame(height: 44)
                         )
-                    }
+                    
                     
                     
                     
@@ -160,7 +165,75 @@ struct HabitCreationView: View {
                     
                 }.padding(.horizontal).padding(.bottom, 15)
                 
-                if newHabitCategory == "Daily" {
+                
+               //MARK: repeating toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Repeating")
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Toggle("Repeating Toggle", isOn: $repeatingEnabled)
+                            .labelsHidden()
+                    }.padding(.bottom, 10)
+                    
+                    if repeatingEnabled {
+                        HStack(spacing: 8) {
+                            Spacer()
+                            ForEach(days.indices, id: \.self) { index in
+                                Button {
+                                    if selectedDays.contains(index) {
+                                        selectedDays.remove(index)
+                                    } else {
+                                        selectedDays.insert(index)
+                                    }
+                                } label: {
+                                    Text(days[index])
+                                        .font(.subheadline.weight(.semibold))
+                                        .frame(width: 32, height: 32)
+                                        .foregroundStyle(
+                                            selectedDays.contains(index)
+                                            ? .white
+                                            : .secondary
+                                        )
+                                        .background(
+                                            Circle()
+                                                .fill(
+                                                    selectedDays.contains(index)
+                                                    ? Color.green
+                                                    : Color.gray.opacity(0.2)
+                                                )
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            Spacer()
+                        }
+                      
+                    } else {
+                        DatePicker(
+                            selection: $selectedDate,
+                            displayedComponents: .date
+                        ) {
+                            Text("Select Date")
+                                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                        }
+                        .datePickerStyle(.compact) // closest to menu-style UX
+                        .tint(colorScheme == .dark ? .white : .black)
+                        
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(colorScheme == .dark
+                              ? Color.black.opacity(0.3)
+                              : Color.gray.opacity(0.1))
+                )
+                .padding(.horizontal)
+                
+                    //MARK: time toggle
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Time")
@@ -168,8 +241,12 @@ struct HabitCreationView: View {
                             
                             Spacer()
                             
-                            Toggle("Add time", isOn: $hasSpecificTime)
-                                .labelsHidden()
+                            Toggle("Visual Reminder Time Toggle", isOn: $hasSpecificTime)
+                                .labelsHidden().onChange(of: hasSpecificTime) { oldValue, newValue in
+                                    if !newValue {
+                                        notificationsEnabled = false
+                                    }
+                                }
                         }.padding(.bottom, 10)
                         
                         if hasSpecificTime {
@@ -179,6 +256,34 @@ struct HabitCreationView: View {
                                 displayedComponents: .hourAndMinute
                             )
                             .datePickerStyle(.compact)
+                            
+                            Divider().padding(.vertical)
+                            
+                            HStack {
+                                Text("Notifications")
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                                
+                                Toggle("Notifications Toggle", isOn: $notificationsEnabled)
+                                    .labelsHidden()
+                            }
+                            
+                            if notificationsEnabled {
+                                HStack{
+                                    Spacer()
+                                    Picker("Notifaction Choices", selection: $notificationOffset) {
+                                        ForEach(notificationOptions, id: \.self) {
+                                            Text($0)
+                                        }
+                                    }
+                                    .labelsHidden()
+                                    .pickerStyle(.menu)
+                                    .tint(colorScheme == .dark ? .white : .black)
+                                    Spacer()
+                                }
+                            }
+                            
                         } else {
                             Text("No specific time")
                                 .font(.footnote)
@@ -193,64 +298,6 @@ struct HabitCreationView: View {
                                   : Color.gray.opacity(0.1))
                     )
                     .padding(.horizontal)
-                }
-                
-                //select days of week
-                if newHabitCategory == "Daily" {
-                    HStack(spacing: 8) {
-                        ForEach(days.indices, id: \.self) { index in
-                            Button {
-                                if selectedDays.contains(index) {
-                                    selectedDays.remove(index)
-                                } else {
-                                    selectedDays.insert(index)
-                                }
-                            } label: {
-                                Text(days[index])
-                                    .font(.subheadline.weight(.semibold))
-                                    .frame(width: 32, height: 32)
-                                    .foregroundStyle(
-                                        selectedDays.contains(index)
-                                        ? .white
-                                        : .secondary
-                                    )
-                                    .background(
-                                        Circle()
-                                            .fill(
-                                                selectedDays.contains(index)
-                                                ? Color.green
-                                                : Color.gray.opacity(0.2)
-                                            )
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding()
-                }
-                
-                if newHabitCategory == "Daily" {
-                    HStack {
-                        Toggle("Notifications", isOn: $notificationsEnabled)
-                            .toggleStyle(.switch)
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    
-                    if notificationsEnabled {
-                        Picker("Notify", selection: $notificationOffset) {
-                            ForEach(notificationOptions, id: \.self) {
-                                Text($0)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .tint(colorScheme == .dark ? .white : .black)
-                        .padding(.horizontal)
-                    }
-                }
-                
-               
-                
                 
                 //Spacer().frame(height: 75)
             }//.preferredColorScheme(.dark)

@@ -13,12 +13,14 @@ struct ContentView: View {
     
     @Environment(\.managedObjectContext) private var moc
     
+    /*
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
         predicate: NSPredicate(format: "category == %@", "Goals"),
         animation: .default
     )
     private var goalHabits: FetchedResults<Habit>
+    */
     
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
@@ -49,8 +51,6 @@ struct ContentView: View {
         return CGFloat(completedCount) / CGFloat(totalHabits)
     }
 
-
-    
     var body: some View {
 
         NavigationStack{
@@ -58,8 +58,6 @@ struct ContentView: View {
                 
                 //list habits
                 List{
-                    
-                    
                     
                     //reminders
                     if showReminders {
@@ -110,8 +108,8 @@ struct ContentView: View {
                         .listRowBackground(Color.clear)
                     }
                     
-                    //goals
-                    
+                    //MARK: goals
+                    /*
                     if !goalHabits.isEmpty {
                         Text("Goals")
                             .font(.title3)
@@ -129,6 +127,7 @@ struct ContentView: View {
                             
                         }
                     }
+                    */
                     
                     // compute all daily habits
                     let dailyHabits = timesOfDay.flatMap { time in
@@ -144,8 +143,8 @@ struct ContentView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, 12)
-                                .listRowSeparator(.hidden)
-                        }
+                                
+                        }.listRowSeparator(.hidden)
                     }
                     
                     
