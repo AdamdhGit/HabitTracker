@@ -50,6 +50,9 @@ struct ContentView: View {
         guard totalHabits > 0 else { return 0 }
         return CGFloat(completedCount) / CGFloat(totalHabits)
     }
+    
+    @State private var selectedDate = Date()
+   
 
     var body: some View {
 
@@ -242,12 +245,10 @@ struct ContentView: View {
                                         
                             }
                             .ignoresSafeArea(.keyboard)
-                        
-                            
+
                                     
                                     
                         }
-                
             
                 
             }
@@ -263,32 +264,58 @@ struct ContentView: View {
                     
                     ToolbarItem(placement: .navigationBarLeading) {
                         
-                        HStack{
-                            //MARK: progress
-                            VStack{
-                                ZStack {
-                                    Circle()
-                                        .stroke(Color.gray.opacity(0.3), lineWidth: 3) // background
-                                        .frame(width: 20, height: 20)
+                            //MARK: progress and date
+
+                                HStack{
                                     
-                                    Circle()
-                                        .trim(from: 0, to: progressAmount)
-                                        .stroke(Color.green, lineWidth: 3)
-                                        .rotationEffect(.degrees(-90))
-                                        .frame(width: 20, height: 20)
+                                    VStack{
+                                        ZStack {
+                                            Circle()
+                                                .stroke(Color.gray.opacity(0.3), lineWidth: 3) // background
+                                                .frame(width: 20, height: 20)
+                                            
+                                            Circle()
+                                                .trim(from: 0, to: progressAmount)
+                                                .stroke(Color.green, lineWidth: 3)
+                                                .rotationEffect(.degrees(-90))
+                                                .frame(width: 20, height: 20)
+                                                
+                                        }
+                                        .overlay{ //MARK: Place the DatePicker in the overlay extension
+                                            DatePicker(
+                                              "",
+                                              selection: $selectedDate,
+                                              displayedComponents: [.date]
+                                            )
+                                            .colorMultiply(.clear)
+                                            .blendMode(.destinationOver)
+                                        }
+                                    }.padding(.leading)
+                                              
+                                                //Text(dateFormatter.string(from: selectedDate))
+                                                   // .font(.headline)
+                                                  //  .foregroundColor(.primary)
+                                    // Date button
+                                   // Image(systemName: "calendar")
+                                    Text(selectedDate, formatter: dateFormatter)
+                                        .frame(width: 100, height: 44)
+                                        .font(.subheadline)
+                                        .padding(.trailing)
+                                        .overlay{ //MARK: Place the DatePicker in the overlay extension
+                                            DatePicker(
+                                              "",
+                                              selection: $selectedDate,
+                                              displayedComponents: [.date]
+                                            )
+                                            .colorMultiply(.clear)
+                                            .blendMode(.destinationOver)
+                                        }
                                         
+                                    
                                 }
-                            }.padding(.leading)
-                            
-                            Button{
+
                                 
-                            }label:{
-                                Text("02/08/2026").font(.subheadline).padding()
-                            }
-                            
-                            
-                        }
-                        
+
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -337,15 +364,21 @@ struct ContentView: View {
             }
         }
     }
-
-
     
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium  // e.g., Feb 10, 2026
+        formatter.timeStyle = .none
+        return formatter
+    }
+
 }
 
+/*
 #Preview {
     let dataController = DataController()
 
     ContentView()
         .environment(\.managedObjectContext, dataController.container.viewContext)
 }
-
+*/
