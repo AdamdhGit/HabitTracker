@@ -343,46 +343,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    let controller = DataController(inMemory: true)
-    let context = controller.container.viewContext
+    let dataController = DataController()
 
-    // MARK: Goals
-    let goal1 = Habit(context: context)
-    goal1.title = "Build Habit Tracker"
-    goal1.category = "Goals"
-    goal1.time = "Morning"
-    goal1.isCompleted = false
-
-    let goal2 = Habit(context: context)
-    goal2.title = "Ship First Version"
-    goal2.category = "Goals"
-    goal2.time = "Evening"
-    goal2.isCompleted = true
-
-    // MARK: Daily - Morning
-    let morning = Habit(context: context)
-    morning.title = "Drink Water"
-    morning.category = "Daily"
-    morning.time = "Morning"
-    morning.isCompleted = true
-
-    // MARK: Daily - Afternoon
-    let afternoon = Habit(context: context)
-    afternoon.title = "Walk Outside"
-    afternoon.category = "Daily"
-    afternoon.time = "Afternoon"
-    afternoon.isCompleted = false
-
-    // MARK: Daily - Evening
-    let evening = Habit(context: context)
-    evening.title = "Read 10 Pages"
-    evening.category = "Daily"
-    evening.time = "Evening"
-    evening.isCompleted = false
-
-    try? context.save()
-
-    return ContentView()
-        .environment(\.managedObjectContext, context)
+    ContentView()
+        .environment(\.managedObjectContext, dataController.container.viewContext)
 }
 

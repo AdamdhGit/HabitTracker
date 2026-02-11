@@ -17,11 +17,11 @@ struct HabitCreationView: View {
     
     var timesOfDay : [String] = ["Morning", "Afternoon", "Evening"]
     
-    var categories : [String] = ["Daily", "Goals"]
+    //var categories : [String] = ["Daily", "Goals"]
     
     @State private var newHabitText = ""
     @State private var newHabitTime = "Morning"
-    @State private var newHabitCategory = "Daily"
+    //@State private var newHabitCategory = "Daily"
     
     @State private var dailySelected = true
     @FocusState.Binding var isAddEntryFocused: Bool
@@ -126,7 +126,7 @@ struct HabitCreationView: View {
                 */
                 
                 HStack {
-                    TextField("\(newHabitCategory == "Daily" ? "ex: Workout" : "ex: Travel Abroad")", text: $newHabitText)
+                    TextField("ex: Workout", text: $newHabitText)
                         .tint(colorScheme == .dark ? .white : .black)
                         .focused($isAddEntryFocused)
                         .padding()
@@ -272,7 +272,7 @@ struct HabitCreationView: View {
                             if notificationsEnabled {
                                 HStack{
                                     Spacer()
-                                    Picker("Notifaction Choices", selection: $notificationOffset) {
+                                    Picker("Notification Choices", selection: $notificationOffset) {
                                         ForEach(notificationOptions, id: \.self) {
                                             Text($0)
                                         }
@@ -326,10 +326,10 @@ struct HabitCreationView: View {
         
         let newItem = Habit(context: moc)
             newItem.title = newHabitText
-            newItem.time = newHabitCategory == "Daily" ? newHabitTime : "" // or nil
+            newItem.time = newHabitTime
             newItem.isCompleted = false
             newItem.id = UUID()
-            newItem.category = newHabitCategory
+            //newItem.category = newHabitCategory
         print (newItem.isCompleted)
         try? moc.save()
 

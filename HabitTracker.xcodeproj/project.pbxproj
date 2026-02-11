@@ -9,14 +9,14 @@
 /* Begin PBXBuildFile section */
 		663728F32F394AD20077EC70 /* HabitTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 663728F12F394AD20077EC70 /* HabitTracker.xcdatamodeld */; };
 		663728FD2F394F8E0077EC70 /* HabitTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663728FA2F394F8E0077EC70 /* HabitTrackerApp.swift */; };
-		663728FF2F3950860077EC70 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663728FE2F3950860077EC70 /* Persistence.swift */; };
+		663728FF2F3950860077EC70 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663728FE2F3950860077EC70 /* DataController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		663728C52F390BBA0077EC70 /* HabitTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HabitTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		663728F22F394AD20077EC70 /* HabitTracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = HabitTracker.xcdatamodel; sourceTree = "<group>"; };
 		663728FA2F394F8E0077EC70 /* HabitTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitTrackerApp.swift; sourceTree = "<group>"; };
-		663728FE2F3950860077EC70 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		663728FE2F3950860077EC70 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,7 +43,7 @@
 			children = (
 				663728FA2F394F8E0077EC70 /* HabitTrackerApp.swift */,
 				663728F12F394AD20077EC70 /* HabitTracker.xcdatamodeld */,
-				663728FE2F3950860077EC70 /* Persistence.swift */,
+				663728FE2F3950860077EC70 /* DataController.swift */,
 				663728C72F390BBA0077EC70 /* HabitTracker */,
 				663728C62F390BBA0077EC70 /* Products */,
 			);
@@ -131,7 +131,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				663728FF2F3950860077EC70 /* Persistence.swift in Sources */,
+				663728FF2F3950860077EC70 /* DataController.swift in Sources */,
 				663728F32F394AD20077EC70 /* HabitTracker.xcdatamodeld in Sources */,
 				663728FD2F394F8E0077EC70 /* HabitTrackerApp.swift in Sources */,
 			);
