@@ -18,7 +18,7 @@ struct HabitRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Button {
-                withAnimation{
+                withAnimation {
                     habit.isCompleted.toggle()
                     
                     if habit.isCompleted {
@@ -49,8 +49,6 @@ struct HabitRow: View {
             
             .buttonStyle(.plain)
             
-           
-            
             Text(habit.title ?? "Unknown")
                 .strikethrough(habit.isCompleted)
                 .foregroundStyle(habit.isCompleted ? .secondary : .primary)
@@ -69,9 +67,6 @@ struct HabitRow: View {
         //.padding
        
         .clipShape(RoundedRectangle(cornerRadius: 14))
-    
-    // 2. The "Mask" - This clips the red box to your card shape
-    
     
     // 3. The Row Background - Makes the area behind your card invisible
         .listRowBackground(Color.clear)

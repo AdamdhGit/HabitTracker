@@ -49,178 +49,31 @@ struct HabitCreationView: View {
     
     
     var body: some View {
-      
+        
         ZStack{
             
             ScrollView{
                 //X and Save
-                HStack{
-                    Button{
-                        newHabitText = ""
-                        showHabitCreation = false
-                    }label:{
-                        Image(systemName: "x.circle")
-                            .font(.system(size: 24))
-                        
-                    }
-                    .tint(colorScheme == .dark ? .white : .black)
-                    .padding(16) //increases tappable area
-                    .contentShape(Circle()) //tells SwiftUI the hit shape
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-                    )
-                    Spacer()
-                    
-                    Button {
-                        
-                        createHabit()
-                        showHabitCreation = false
-                    } label: {
-                        Text("Save")
-                            .foregroundStyle(
-                                newHabitText.trimmingCharacters(in: .whitespaces).isEmpty
-                                ? .gray
-                                : .green
-                            )
-                        
-                    }
-                    .buttonStyle(.plain)
-                    
-                    .disabled(newHabitText.trimmingCharacters(in: .whitespaces).isEmpty)
-                    .padding(16) //increases tappable area
-                    .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
-                    .frame(width: 70, height: 44)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(colorScheme == .dark
-                                  ? Color.black.opacity(0.3)
-                                  : Color.gray.opacity(0.1))
-                    )
-                    
-                }.padding()
-                
-                //MARK: daily/goals picker
-                /*
-                HStack{
-                    Picker(selection: $newHabitCategory) {
-                        ForEach(categories, id: \.self) { category in
-                            Text(category)                  // this is each option
-                        }
-                    } label: {
-                        Text("Category")            // the visible label for the picker
-                            .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        
-                    }
-                    .pickerStyle(.menu)
-                    .tint(colorScheme == .dark ? .white : .black)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-                            .frame(height: 44)
-                    )
-                    
-                    Spacer()
-                }.padding(.horizontal).padding(.bottom, 10)
-                */
+                xAndSaveButtons.padding()
                 
                 HStack {
-                    TextField("ex: Workout", text: $newHabitText)
-                        .tint(colorScheme == .dark ? .white : .black)
-                        .focused($isAddEntryFocused)
-                        .padding()
-                        .frame(height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-                        )
-                        .foregroundStyle(colorScheme == .dark ? .white : .black)
+                    newHabitTextField
                     
-                        
-                        Picker(selection: $newHabitTime) {
-                            ForEach(timesOfDay, id: \.self) { time in
-                                Text(time)                  // this is each option
-                            }
-                        } label: {
-                            Text("Time of Day")            // the visible label for the picker
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                            
-                        }
-                        .pickerStyle(.menu)
-                        .tint(colorScheme == .dark ? .white : .black)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-                                .frame(height: 44)
-                        )
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
+                    timeOfDayPicker
                     
                 }.padding(.horizontal).padding(.bottom, 15)
                 
-                
-               //MARK: repeating toggle
+                //MARK: repeating toggle
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Repeating")
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Toggle("Repeating Toggle", isOn: $repeatingEnabled)
-                            .labelsHidden()
-                    }.padding(.bottom, 10)
+                    repeatingToggle
                     
                     if repeatingEnabled {
-                        HStack(spacing: 8) {
-                            Spacer()
-                            ForEach(days.indices, id: \.self) { index in
-                                Button {
-                                    if selectedDays.contains(index) {
-                                        selectedDays.remove(index)
-                                    } else {
-                                        selectedDays.insert(index)
-                                    }
-                                } label: {
-                                    Text(days[index])
-                                        .font(.subheadline.weight(.semibold))
-                                        .frame(width: 32, height: 32)
-                                        .foregroundStyle(
-                                            selectedDays.contains(index)
-                                            ? .white
-                                            : .secondary
-                                        )
-                                        .background(
-                                            Circle()
-                                                .fill(
-                                                    selectedDays.contains(index)
-                                                    ? Color.green
-                                                    : Color.gray.opacity(0.2)
-                                                )
-                                        )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            Spacer()
-                        }
-                      
+                        
+                        displayRepeatingDays
+                        
                     } else {
-                        DatePicker(
-                            selection: $selectedDate,
-                            displayedComponents: .date
-                        ) {
-                            Text("Select Date")
-                                .foregroundStyle(colorScheme == .dark ? .white : .black)
-                        }
-                        .datePickerStyle(.compact) // closest to menu-style UX
-                        .tint(colorScheme == .dark ? .white : .black)
+                        
+                        selectSpecificDatePicker
                         
                     }
                 }
@@ -233,74 +86,38 @@ struct HabitCreationView: View {
                 )
                 .padding(.horizontal)
                 
-                    //MARK: time toggle
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Time")
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            Toggle("Visual Reminder Time Toggle", isOn: $hasSpecificTime)
-                                .labelsHidden().onChange(of: hasSpecificTime) { oldValue, newValue in
-                                    if !newValue {
-                                        notificationsEnabled = false
-                                    }
-                                }
-                        }.padding(.bottom, 10)
+                //MARK: time toggle
+                VStack(alignment: .leading, spacing: 8) {
+                    timeToggle
+                    
+                    if hasSpecificTime {
                         
-                        if hasSpecificTime {
-                            DatePicker(
-                                "Visual Reminder Time",
-                                selection: $specificTime,
-                                displayedComponents: .hourAndMinute
-                            )
-                            .datePickerStyle(.compact)
-                            
-                            Divider().padding(.vertical)
-                            
-                            HStack {
-                                Text("Notifications")
-                                    .foregroundStyle(.primary)
-                                
-                                Spacer()
-                                
-                                Toggle("Notifications Toggle", isOn: $notificationsEnabled)
-                                    .labelsHidden()
-                            }
-                            
-                            if notificationsEnabled {
-                                HStack{
-                                    Spacer()
-                                    Picker("Notification Choices", selection: $notificationOffset) {
-                                        ForEach(notificationOptions, id: \.self) {
-                                            Text($0)
-                                        }
-                                    }
-                                    .labelsHidden()
-                                    .pickerStyle(.menu)
-                                    .tint(colorScheme == .dark ? .white : .black)
-                                    Spacer()
-                                }
-                            }
-                            
-                        } else {
-                            Text("No specific time")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                        visualReminderTimePicker
+                        
+                        Divider().padding(.vertical)
+                        
+                        notificationsToggle
+                        
+                        if notificationsEnabled {
+                            notificationChoicesPicker
                         }
+                        
+                    } else {
+                        Text("No specific time")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(colorScheme == .dark
-                                  ? Color.black.opacity(0.3)
-                                  : Color.gray.opacity(0.1))
-                    )
-                    .padding(.horizontal)
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(colorScheme == .dark
+                              ? Color.black.opacity(0.3)
+                              : Color.gray.opacity(0.1))
+                )
+                .padding(.horizontal)
                 
-                //Spacer().frame(height: 75)
-            }//.preferredColorScheme(.dark)
+            }
         }
         .onChange(of: notificationsEnabled) { _, _ in
             withAnimation{
@@ -320,6 +137,197 @@ struct HabitCreationView: View {
             isAddEntryFocused = false
         }
 
+    }
+    
+    var xAndSaveButtons: some View {
+        HStack{
+            Button{
+                newHabitText = ""
+                showHabitCreation = false
+            }label:{
+                Image(systemName: "x.circle")
+                    .font(.system(size: 24))
+                
+            }
+            .tint(colorScheme == .dark ? .white : .black)
+            .padding(16) //increases tappable area
+            .contentShape(Circle()) //tells SwiftUI the hit shape
+            .frame(width: 44, height: 44)
+            .background(
+                Circle()
+                    .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+            )
+            Spacer()
+            
+            Button {
+                
+                createHabit()
+                showHabitCreation = false
+            } label: {
+                Text("Save")
+                    .foregroundStyle(
+                        newHabitText.trimmingCharacters(in: .whitespaces).isEmpty
+                        ? .gray
+                        : .green
+                    )
+                
+            }
+            .buttonStyle(.plain)
+            
+            .disabled(newHabitText.trimmingCharacters(in: .whitespaces).isEmpty)
+            .padding(16) //increases tappable area
+            .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
+            .frame(width: 70, height: 44)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(colorScheme == .dark
+                          ? Color.black.opacity(0.3)
+                          : Color.gray.opacity(0.1))
+            )
+            
+        }
+    }
+    
+    var newHabitTextField: some View {
+        TextField("ex: Workout", text: $newHabitText)
+            .tint(colorScheme == .dark ? .white : .black)
+            .focused($isAddEntryFocused)
+            .padding()
+            .frame(height: 44)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+            )
+            .foregroundStyle(colorScheme == .dark ? .white : .black)
+    }
+    
+    var timeOfDayPicker: some View {
+        Picker(selection: $newHabitTime) {
+            ForEach(timesOfDay, id: \.self) { time in
+                Text(time)                  // this is each option
+            }
+        } label: {
+            Text("Time of Day")            // the visible label for the picker
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
+            
+        }
+        .pickerStyle(.menu)
+        .tint(colorScheme == .dark ? .white : .black)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+                .frame(height: 44)
+        )
+    }
+    
+    var repeatingToggle: some View {
+        HStack {
+            Text("Repeating")
+                .foregroundStyle(.primary)
+            
+            Spacer()
+            
+            Toggle("Repeating Toggle", isOn: $repeatingEnabled)
+                .labelsHidden()
+        }.padding(.bottom, 10)
+    }
+    
+    var displayRepeatingDays: some View {
+        HStack(spacing: 8) {
+            Spacer()
+            ForEach(days.indices, id: \.self) { index in
+                Button {
+                    if selectedDays.contains(index) {
+                        selectedDays.remove(index)
+                    } else {
+                        selectedDays.insert(index)
+                    }
+                } label: {
+                    Text(days[index])
+                        .font(.subheadline.weight(.semibold))
+                        .frame(width: 32, height: 32)
+                        .foregroundStyle(
+                            selectedDays.contains(index)
+                            ? .white
+                            : .secondary
+                        )
+                        .background(
+                            Circle()
+                                .fill(
+                                    selectedDays.contains(index)
+                                    ? Color.green
+                                    : Color.gray.opacity(0.2)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+    }
+    
+    var selectSpecificDatePicker: some View {
+        DatePicker(
+            selection: $selectedDate,
+            displayedComponents: .date
+        ) {
+            Text("Select Date")
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
+        }
+        .datePickerStyle(.compact) // closest to menu-style UX
+        .tint(colorScheme == .dark ? .white : .black)
+    }
+    
+    var timeToggle: some View {
+        HStack {
+            Text("Time")
+                .foregroundStyle(.primary)
+            
+            Spacer()
+            
+            Toggle("Visual Reminder Time Toggle", isOn: $hasSpecificTime)
+                .labelsHidden().onChange(of: hasSpecificTime) { oldValue, newValue in
+                    if !newValue {
+                        notificationsEnabled = false
+                    }
+                }
+        }.padding(.bottom, 10)
+    }
+    
+    var visualReminderTimePicker: some View {
+        DatePicker(
+            "Visual Reminder Time",
+            selection: $specificTime,
+            displayedComponents: .hourAndMinute
+        )
+        .datePickerStyle(.compact)
+    }
+    
+    var notificationsToggle: some View {
+        HStack {
+            Text("Notifications")
+                .foregroundStyle(.primary)
+            
+            Spacer()
+            
+            Toggle("Notifications Toggle", isOn: $notificationsEnabled)
+                .labelsHidden()
+        }
+    }
+    
+    var notificationChoicesPicker: some View {
+        HStack{
+            Spacer()
+            Picker("Notification Choices", selection: $notificationOffset) {
+                ForEach(notificationOptions, id: \.self) {
+                    Text($0)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .tint(colorScheme == .dark ? .white : .black)
+            Spacer()
+        }
     }
     
     func createHabit() {
@@ -347,4 +355,28 @@ struct HabitCreationView: View {
     // Pass its context into ContentView
     HabitCreationView(showHabitCreation: .constant(false), isAddEntryFocused: FocusState<Bool>().projectedValue).environment(\.managedObjectContext, dataController.container.viewContext)
 }
+
+//MARK: daily/goals picker
+/*
+HStack{
+    Picker(selection: $newHabitCategory) {
+        ForEach(categories, id: \.self) { category in
+            Text(category)                  // this is each option
+        }
+    } label: {
+        Text("Category")            // the visible label for the picker
+            .foregroundStyle(colorScheme == .dark ? .white : .black)
+        
+    }
+    .pickerStyle(.menu)
+    .tint(colorScheme == .dark ? .white : .black)
+    .background(
+        RoundedRectangle(cornerRadius: 12)
+            .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+            .frame(height: 44)
+    )
+    
+    Spacer()
+}.padding(.horizontal).padding(.bottom, 10)
+*/
 
