@@ -13,15 +13,6 @@ struct ContentView: View {
     
     @Environment(\.managedObjectContext) private var moc
     
-    /*
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
-        predicate: NSPredicate(format: "category == %@", "Goals"),
-        animation: .default
-    )
-    private var goalHabits: FetchedResults<Habit>
-    */
-    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
         animation: .default
@@ -72,18 +63,21 @@ struct ContentView: View {
                         .listRowBackground(Color.clear)
                     }
                     
-                    // compute all daily habits
+                    // filters habits by morning/afternoon/evening
+                    /*
                     let dailyHabits = timesOfDay.flatMap { time in
-                        habits.filter { $0.time == time }
+                        habitsForSelectedDate.filter { $0.time == time }
                     }
+                     */
                     
                     // show "Daily" only if there’s at least one
-                    if !dailyHabits.isEmpty {
+                    //before: if !dailyhabits.isEmpty
+                    if !habitsForSelectedDate.isEmpty {
                         dayTitle
                     }
                     
                     ForEach(timesOfDay, id: \.self) { time in
-                        let items = habits.filter { $0.time == time }
+                        let items = habitsForSelectedDate.filter { $0.time == time }
                         
                         //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
                         
@@ -99,7 +93,7 @@ struct ContentView: View {
                             
                             //habits listed
                             ForEach(items) { i in
-                                HabitRow(completedCount: $completedCount, habit: i)
+                                HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
                                 
                             }
                             //end habits
@@ -158,6 +152,9 @@ struct ContentView: View {
             .onChange(of: habits.count) {
                 updateHabitCount()
             }
+            .onChange(of: selectedDate, {
+                updateHabitCount()
+            })
             .toolbar{
                 
                 
@@ -316,24 +313,18 @@ struct ContentView: View {
     }
     
     func updateHabitCount() {
-        totalHabits = habits.count
-        completedCount = habits.filter { $0.isCompleted }.count
-    }
-    
-    func returnRowColor(habit: Habit) -> Color {
-        if colorScheme == .dark {
-            if habit.isCompleted {
-                return Color.green.opacity(0.1)
-            } else {
-                return Color.white.opacity(0.1)
-            }
-        } else {
-            if habit.isCompleted {
-                return Color.green.opacity(0.1)
-            } else {
-                return Color.black.opacity(0.1)
-            }
-        }
+        totalHabits = habitsForSelectedDate.count
+        
+        completedCount = habitsForSelectedDate.filter { habit in
+            habit.completions?
+                .compactMap { $0 as? HabitCompletion }
+                .contains { completion in
+                    if let date = completion.date {
+                        return Calendar.current.isDate(date, inSameDayAs: selectedDate) && completion.isCompleted
+                    }
+                    return false
+                } ?? false
+        }.count
     }
     
     private var dateFormatter: DateFormatter {
@@ -341,6 +332,31 @@ struct ContentView: View {
         formatter.dateStyle = .medium  // e.g., Feb 10, 2026
         formatter.timeStyle = .none
         return formatter
+    }
+    
+    var habitsForSelectedDate: [Habit] {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: selectedDate)
+
+        return habits.filter { habit in
+            
+            if habit.isRepeating {
+                
+                switch weekday {
+                case 1: return habit.onSunday
+                case 2: return habit.onMonday
+                case 3: return habit.onTuesday
+                case 4: return habit.onWednesday
+                case 5: return habit.onThursday
+                case 6: return habit.onFriday
+                case 7: return habit.onSaturday
+                default: return false
+                }
+                
+            } else {
+                return habit.specificDate == calendar.startOfDay(for: selectedDate)
+            }
+        }
     }
 
 }
@@ -355,6 +371,16 @@ struct ContentView: View {
 */
 
 //MARK: goals
+
+/*
+@FetchRequest(
+    sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
+    predicate: NSPredicate(format: "category == %@", "Goals"),
+    animation: .default
+)
+private var goalHabits: FetchedResults<Habit>
+*/
+
 /*
 if !goalHabits.isEmpty {
     Text("Goals")

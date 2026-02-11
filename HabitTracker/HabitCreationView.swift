@@ -23,7 +23,6 @@ struct HabitCreationView: View {
     @State private var newHabitTime = "Morning"
     //@State private var newHabitCategory = "Daily"
     
-    @State private var dailySelected = true
     @FocusState.Binding var isAddEntryFocused: Bool
     
     //
@@ -119,6 +118,16 @@ struct HabitCreationView: View {
                 
             }
         }
+        .onChange(of: selectedDays) { oldValue, newValue in
+            if repeatingEnabled && newValue.isEmpty {
+                repeatingEnabled = false
+            }
+        }
+        .onChange(of: repeatingEnabled, { oldValue, newValue in
+            if newValue {
+                selectedDays = Set(0...6)
+            }
+        })
         .onChange(of: notificationsEnabled) { _, _ in
             withAnimation{
                 isAddEntryFocused = false
@@ -173,7 +182,7 @@ struct HabitCreationView: View {
                 
             }
             .buttonStyle(.plain)
-            
+            .disabled(repeatingEnabled && selectedDays.isEmpty)
             .disabled(newHabitText.trimmingCharacters(in: .whitespaces).isEmpty)
             .padding(16) //increases tappable area
             .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
@@ -337,8 +346,47 @@ struct HabitCreationView: View {
             newItem.time = newHabitTime
             newItem.isCompleted = false
             newItem.id = UUID()
+        
+        newItem.isRepeating = repeatingEnabled
+        
+        if repeatingEnabled {
+            //the set just takes into account the index which matches the value of the days. its not looking at the day value, but by matching the index its the equivalent of matching the day value. and assigning whether each day is true in the actual object below.
+               
+               // Save weekday booleans
+               newItem.onMonday = selectedDays.contains(0)
+               newItem.onTuesday = selectedDays.contains(1)
+               newItem.onWednesday = selectedDays.contains(2)
+               newItem.onThursday = selectedDays.contains(3)
+               newItem.onFriday = selectedDays.contains(4)
+               newItem.onSaturday = selectedDays.contains(5)
+               newItem.onSunday = selectedDays.contains(6)
+               
+               newItem.specificDate = nil
+               
+           } else {
+               
+               // Save specific date
+               newItem.specificDate = Calendar.current.startOfDay(for: selectedDate)
+               
+               // Turn off all weekday flags
+               newItem.onMonday = false
+               newItem.onTuesday = false
+               newItem.onWednesday = false
+               newItem.onThursday = false
+               newItem.onFriday = false
+               newItem.onSaturday = false
+               newItem.onSunday = false
+           }
             //newItem.category = newHabitCategory
+        
         print (newItem.isCompleted)
+        
+        // Create the nested completion entity
+          let completion = HabitCompletion(context: moc)
+          completion.id = UUID()
+          completion.isCompleted = false
+          completion.habit = newItem // link it
+        
         try? moc.save()
 
         print (newItem.isCompleted)

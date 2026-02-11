@@ -3,7 +3,23 @@
     <entity name="Habit" representedClassName="Habit" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isRepeating" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onFriday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onMonday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onSaturday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onSunday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onThursday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onTuesday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="onWednesday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="specificDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="time" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="completions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="HabitCompletion" inverseName="habit" inverseEntity="HabitCompletion"/>
+    </entity>
+    <entity name="HabitCompletion" representedClassName="HabitCompletion" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <relationship name="habit" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Habit" inverseName="completions" inverseEntity="Habit"/>
     </entity>
 </model>

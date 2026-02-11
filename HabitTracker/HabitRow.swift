@@ -14,28 +14,17 @@ struct HabitRow: View {
     @ObservedObject var habit: Habit
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.managedObjectContext) private var moc
+    
+    @Binding var selectedDate: Date
 
     var body: some View {
         HStack(spacing: 12) {
             Button {
-                withAnimation {
-                    habit.isCompleted.toggle()
-                    
-                    if habit.isCompleted {
-                        completedCount += 1
-                    } else {
-                        completedCount -= 1
-                    }
+                withAnimation{
+                    toggleCompletion()
                 }
-                
-                    do {
-                        try moc.save()
-                    } catch {
-                        print("Save error:", error)
-                    }
-                
             } label: {
-                Image(systemName: habit.isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(systemName: isCompletedOnSelectedDate() ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 20))
                     .background(
                         // Transparent, hit-testable area that does NOT affect layout of parent
@@ -50,15 +39,15 @@ struct HabitRow: View {
             .buttonStyle(.plain)
             
             Text(habit.title ?? "Unknown")
-                .strikethrough(habit.isCompleted)
-                .foregroundStyle(habit.isCompleted ? .secondary : .primary)
+                .strikethrough(isCompletedOnSelectedDate())
+                .foregroundStyle(isCompletedOnSelectedDate() ? .secondary : .primary)
             
             Spacer()
         }
         .padding(7)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(habit.isCompleted
+                .fill(isCompletedOnSelectedDate()
                       ? Color.green.opacity(0.12)
                       : (colorScheme == .dark
                          ? Color.white.opacity(0.1)
@@ -88,24 +77,74 @@ struct HabitRow: View {
     }
     
     func returnRowColor(habit: Habit) -> Color {
+        let completed = isCompletedOnSelectedDate()
+        
         if colorScheme == .dark {
-            if habit.isCompleted {
-                return Color.green.opacity(0.1)
-            } else {
-                return Color.white.opacity(0.1)
-            }
+            return completed ? Color.green.opacity(0.1) : Color.white.opacity(0.1)
         } else {
-            if habit.isCompleted {
-                return Color.green.opacity(0.1)
-            } else {
-                return Color.black.opacity(0.1)
-            }
+            return completed ? Color.green.opacity(0.1) : Color.black.opacity(0.1)
         }
     }
     
+    func isCompletedOnSelectedDate() -> Bool {
+        let calendar = Calendar.current
+        
+        return habit.completions?
+            .compactMap { $0 as? HabitCompletion }
+            .contains { completion in
+                if let date = completion.date {
+                    return calendar.isDate(date, inSameDayAs: selectedDate) && completion.isCompleted
+                }
+                return false
+            } ?? false
+    }
+
+    func toggleCompletion() {
+        let calendar = Calendar.current
+        
+        // 1. Check if a completion exists for the selected date
+        if let existing = habit.completions?
+            .compactMap({ $0 as? HabitCompletion })
+            .first(where: { completion in
+                if let date = completion.date {
+                    return calendar.isDate(date, inSameDayAs: selectedDate)
+                }
+                return false
+            }) {
+            
+            // Toggle isCompleted
+            existing.isCompleted.toggle()
+            
+            if existing.isCompleted {
+                completedCount += 1
+            } else {
+                completedCount -= 1
+            }
+            
+        } else {
+            // 2. If no completion exists, create one
+            let newCompletion = HabitCompletion(context: moc)
+            newCompletion.id = UUID()
+            newCompletion.date = calendar.startOfDay(for: selectedDate)
+            newCompletion.isCompleted = true
+            newCompletion.habit = habit
+            
+            completedCount += 1
+        }
+        
+        // 3. Save context
+        do {
+            try moc.save()
+        } catch {
+            print("Save error:", error)
+        }
+    }
+
+
+    
 }
 
-
+/*
 #Preview {
     // 1. Create context
     let context = DataController(inMemory: true).container.viewContext
@@ -116,7 +155,8 @@ struct HabitRow: View {
     previewHabit.isCompleted = false
 
     // 3. YOU NEED 'return' HERE
-    return HabitRow(completedCount: .constant(0), habit: previewHabit)
+    return HabitRow(completedCount: .constant(0), habit: previewHabit, selectedDate: .constant(Date()))
         .environment(\.managedObjectContext, context)
         .padding()
 }
+*/
