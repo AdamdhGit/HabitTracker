@@ -11,6 +11,8 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @Environment(\.scenePhase) var scenePhase
+    
     @Environment(\.managedObjectContext) private var moc
     
     @FetchRequest(
@@ -43,7 +45,7 @@ struct ContentView: View {
     }
     
     @State private var selectedDate = Date()
-   
+    @State private var showPicker = false
 
     var body: some View {
         
@@ -114,6 +116,99 @@ struct ContentView: View {
                     createHabitPlusButton
                 }
                 
+                VStack{
+                    HStack{
+                        Spacer()
+                        Menu {
+                            Toggle("Show Reminders", isOn: $showReminders)
+                        } label: {
+                            Image(systemName: "slider.horizontal.2.square")
+                                .font(.system(size: 16))
+                                .padding()
+                                .clipShape(Circle())
+                                .glassEffect()
+                            
+                        }
+                        
+                        .contentShape(Circle())
+                        
+                        
+                    }
+                    Spacer()
+                }
+                
+                if showPicker {
+                    Color.black.opacity(0.001) // Invisible but intercepts taps
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                             
+                                    showPicker = false
+                                
+                            }
+              
+                }
+                
+
+                
+
+                
+                
+                VStack{
+                    HStack{
+                        
+                        // Button to show/hide the picker
+                        Button{
+                            withAnimation {
+                                showPicker.toggle()
+                            }
+                        }label:{
+                            HStack{
+                                
+                                    dailyProgressCircle
+                                    .padding(.leading)
+                                 
+                                  
+                                                        
+                                // Date button
+                                Text(selectedDate, formatter: dateFormatter)
+                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+                                    .frame(width: 90, height: 44)
+                                    .font(.subheadline)
+                                    .padding(.trailing)
+                                
+                                    
+                                
+                            }
+                            .glassEffect()
+                        }
+                      
+
+                          
+                        
+
+                        Spacer()
+                    }
+                    
+                    if showPicker {
+                        DatePicker(
+                            "Select Date",
+                            selection: $selectedDate,
+                            displayedComponents: [.date]
+                        )
+                        .datePickerStyle(.graphical)
+                        .id(selectedDate)
+                        .labelsHidden()
+                        .padding()
+                        .shadow(radius: 5)
+                        //.transition(.opacity) // Add transition animation [11]
+                        .glassEffect(in: .rect(cornerRadius: 16.0))
+                    }
+                    
+                   
+                    
+                    Spacer()
+                }
+                
                 if showHabitCreation {
                     VStack{
                         //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
@@ -145,6 +240,12 @@ struct ContentView: View {
                 }
                 
             }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active {
+                    // Reset the picker to the current day whenever the app comes to the foreground
+                    selectedDate = Date()
+                }
+            }
             .onAppear {
                 updateHabitCount()
             }
@@ -155,53 +256,8 @@ struct ContentView: View {
             .onChange(of: selectedDate, {
                 updateHabitCount()
             })
-            .toolbar{
-                
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    
-                    //MARK: progress and date
-                    
-                    HStack{
-                        
-                        VStack{
-                            dailyProgressCircle
-                                .overlay{ //MARK: Place the DatePicker in the overlay extension
-                                    toolbarDatePicker
-                                }
-                        }.padding(.leading)
-                        
-                        // Date button
-                        Text(selectedDate, formatter: dateFormatter)
-                            .frame(width: 100, height: 44)
-                            .font(.subheadline)
-                            .padding(.trailing)
-                            .overlay{ //MARK: Place the DatePicker in the overlay extension
-                                toolbarDatePicker
-                            }
-                        
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    
-                    Menu {
-                        Toggle("Show Reminders", isOn: $showReminders)
-                    } label: {
-                        Image(systemName: "slider.horizontal.2.square")
-                            .font(.system(size: 16))
-                        
-                        
-                            .contentShape(Circle()) //tells SwiftUI the hit shape
-                            .frame(height: 40)
-                        
-                    }.buttonStyle(.plain)
-                    
-                    
-                }
-                
-            }
-        }.preferredColorScheme(.dark)
+
+        }
         
     }
     
@@ -253,7 +309,7 @@ struct ContentView: View {
     
     var dayTitle: some View {
         HStack{
-            Text("Daily")
+            Text(displayDate(selectedDate))
                 .font(.title3)
                 .kerning(0.5)
                 .fontWeight(.semibold)
@@ -263,26 +319,48 @@ struct ContentView: View {
         }.listRowSeparator(.hidden)
     }
     
+    func displayDate(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            return formatter.string(from: date)
+        }
+    }
+    
     var createHabitPlusButton: some View {
         VStack {
             
             Spacer() // push to bottom
             //MARK: this is what puts it right on keyboard when keyboard is open
             
+            
             Button {
+                
                 showHabitCreation = true
                 isAddEntryFocused = true
+                
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(colorScheme == .dark ? .white : .black)
-                    .frame(width: 40, height: 40)
-                    
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .padding()
+                    //.background(Color(red: 0, green: 0, blue: 0.5))
+                    .clipShape(Circle())
+                    .glassEffect()
                 
             }
-        
-            
-            .buttonStyle(.glass)
+            //.buttonStyle(.glass)
+            .contentShape(Circle()) // now exactly matches background
+
             
         }
     }
@@ -302,14 +380,16 @@ struct ContentView: View {
         }
     }
     
-    var toolbarDatePicker: some View {
+    var overlayDatePicker: some View {
         DatePicker(
           "",
           selection: $selectedDate,
           displayedComponents: [.date]
         )
-        .colorMultiply(.clear)
+
+        //.colorMultiply(.clear)
         .blendMode(.destinationOver)
+   
     }
     
     func updateHabitCount() {
@@ -335,6 +415,7 @@ struct ContentView: View {
     }
     
     var habitsForSelectedDate: [Habit] {
+        
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: selectedDate)
 
@@ -354,10 +435,14 @@ struct ContentView: View {
                 }
                 
             } else {
-                return habit.specificDate == calendar.startOfDay(for: selectedDate)
+                if let specificDate = habit.specificDate {
+                    return Calendar.current.isDate(specificDate, inSameDayAs: selectedDate)
+                }
+                return false
             }
         }
     }
+
 
 }
 

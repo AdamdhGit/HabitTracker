@@ -385,6 +385,7 @@ struct HabitCreationView: View {
           let completion = HabitCompletion(context: moc)
           completion.id = UUID()
           completion.isCompleted = false
+          completion.date = Calendar.current.startOfDay(for: selectedDate)
           completion.habit = newItem // link it
         
         try? moc.save()

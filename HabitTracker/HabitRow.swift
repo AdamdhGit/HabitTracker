@@ -101,13 +101,15 @@ struct HabitRow: View {
 
     func toggleCompletion() {
         let calendar = Calendar.current
+        let targetDate = calendar.startOfDay(for: selectedDate)
         
         // 1. Check if a completion exists for the selected date
         if let existing = habit.completions?
             .compactMap({ $0 as? HabitCompletion })
             .first(where: { completion in
                 if let date = completion.date {
-                    return calendar.isDate(date, inSameDayAs: selectedDate)
+                    //return calendar.isDate(date, inSameDayAs: selectedDate)
+                    return calendar.isDate(date, inSameDayAs: targetDate)
                 }
                 return false
             }) {
@@ -139,6 +141,7 @@ struct HabitRow: View {
             print("Save error:", error)
         }
     }
+
 
 
     
