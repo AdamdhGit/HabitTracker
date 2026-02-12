@@ -52,8 +52,17 @@ struct ContentView: View {
         NavigationStack{
             ZStack(alignment: .top){
                 
+                VStack{
+                    if showHabitCreation {
+                        Spacer().frame(height: 44)
+                    }
+                    Spacer()
+                }
+                
                 //list habits
                 List{
+                    
+                    Spacer().frame(height: 30)
                     
                     //reminders
                     if showReminders {
@@ -116,27 +125,31 @@ struct ContentView: View {
                     createHabitPlusButton
                 }
                 
-                VStack{
-                    HStack{
-                        Spacer()
-                        Menu {
-                            Toggle("Show Reminders", isOn: $showReminders)
-                        } label: {
-                            Image(systemName: "slider.horizontal.2.square")
-                                .font(.system(size: 16))
-                                .padding()
-                                .clipShape(Circle())
-                                .glassEffect()
+                if !showHabitCreation {
+                    //MARK: menu button
+                    VStack{
+                        HStack{
+                            Spacer()
+                            Menu {
+                                Toggle("Show Reminders", isOn: $showReminders)
+                            } label: {
+                                Image(systemName: "slider.horizontal.2.square")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
+                                    .padding()
+                                    .clipShape(Circle())
+                                    .glassEffect()
+                                
+                            }
+                            .contentShape(Circle())
                             
-                        }
-                        
-                        .contentShape(Circle())
-                        
-                        
+                            
+                        }.frame(height: 44)
+                        Spacer()
                     }
-                    Spacer()
                 }
                 
+                //MARK: date picker background tap off
                 if showPicker {
                     Color.black.opacity(0.001) // Invisible but intercepts taps
                             .ignoresSafeArea()
@@ -149,64 +162,56 @@ struct ContentView: View {
                 }
                 
 
-                
-
-                
-                
-                VStack{
-                    HStack{
-                        
-                        // Button to show/hide the picker
-                        Button{
-                            withAnimation {
-                                showPicker.toggle()
-                            }
-                        }label:{
-                            HStack{
-                                
-                                    dailyProgressCircle
-                                    .padding(.leading)
-                                 
-                                  
-                                                        
-                                // Date button
-                                Text(selectedDate, formatter: dateFormatter)
-                                    .foregroundStyle(colorScheme == .dark ? .white : .black)
-                                    .frame(width: 90, height: 44)
-                                    .font(.subheadline)
-                                    .padding(.trailing)
-                                
+                if !showHabitCreation {
+                    //MARK: date picker button and progress circles
+                    VStack{
+                        HStack{
+                            
+                            // Button to show/hide the picker
+                            Button{
+                                withAnimation {
+                                    showPicker.toggle()
+                                }
+                            }label:{
+                                HStack{
                                     
-                                
+                                    dailyProgressCircle
+                                        .padding(.leading)
+                                    
+                                    
+                                    // Date button
+                                    Text(selectedDate, formatter: dateFormatter)
+                                        .foregroundStyle(colorScheme == .dark ? .white : .black)
+                                        .frame(width: 90, height: 44)
+                                        .font(.subheadline)
+                                        .padding(.trailing)
+                                    
+                                }
+                                .glassEffect()
                             }
-                            .glassEffect()
-                        }
-                      
-
-                          
+                            
+                            Spacer()
+                        }.frame(height: 44)
                         
-
+                        if showPicker {
+                            DatePicker(
+                                "Select Date",
+                                selection: $selectedDate,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.graphical)
+                            .id(selectedDate)
+                            .labelsHidden()
+                            .padding()
+                            .shadow(radius: 5)
+                            //.transition(.opacity) // Add transition animation [11]
+                            .glassEffect(in: .rect(cornerRadius: 16.0))
+                        }
+                        
+                        
+                        
                         Spacer()
                     }
-                    
-                    if showPicker {
-                        DatePicker(
-                            "Select Date",
-                            selection: $selectedDate,
-                            displayedComponents: [.date]
-                        )
-                        .datePickerStyle(.graphical)
-                        .id(selectedDate)
-                        .labelsHidden()
-                        .padding()
-                        .shadow(radius: 5)
-                        //.transition(.opacity) // Add transition animation [11]
-                        .glassEffect(in: .rect(cornerRadius: 16.0))
-                    }
-                    
-                   
-                    
-                    Spacer()
                 }
                 
                 if showHabitCreation {
@@ -347,15 +352,16 @@ struct ContentView: View {
                 
                 showHabitCreation = true
                 isAddEntryFocused = true
+                    
                 
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
-                    .padding()
+                    .frame(width: 60, height: 60)
                     //.background(Color(red: 0, green: 0, blue: 0.5))
-                    .clipShape(Circle())
                     .glassEffect()
+                    .clipShape(Circle())
                 
             }
             //.buttonStyle(.glass)
@@ -364,6 +370,7 @@ struct ContentView: View {
             
         }
     }
+
     
     var dailyProgressCircle: some View {
         ZStack {
