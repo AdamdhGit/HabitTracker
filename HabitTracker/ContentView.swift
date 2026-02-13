@@ -144,7 +144,7 @@ struct ContentView: View {
                             .contentShape(Circle())
                             
                             
-                        }.frame(height: 44)
+                        }.frame(height: 44).padding(.trailing)
                         Spacer()
                     }
                 }
@@ -160,6 +160,26 @@ struct ContentView: View {
                             }
               
                 }
+                
+
+                //MARK: date picker
+                    VStack{
+                        DatePicker(
+                            "Select Date",
+                            selection: $selectedDate,
+                            displayedComponents: [.date]
+                        )
+                        .datePickerStyle(.graphical)
+                        .frame(width: 320, height: 400)
+                        
+                        .labelsHidden()
+                        //.transition(.opacity) // Add transition animation [11]
+                        .glassEffect(in: .rect(cornerRadius: 16.0))
+                    }
+                    .padding(.top, 60)
+                    .opacity(showPicker ? 1 : 0)
+                    .allowsHitTesting(showPicker)
+                
                 
 
                 if !showHabitCreation {
@@ -191,22 +211,9 @@ struct ContentView: View {
                             }
                             
                             Spacer()
-                        }.frame(height: 44)
+                        }.frame(height: 44).padding(.leading)
                         
-                        if showPicker {
-                            DatePicker(
-                                "Select Date",
-                                selection: $selectedDate,
-                                displayedComponents: [.date]
-                            )
-                            .datePickerStyle(.graphical)
-                            .id(selectedDate)
-                            .labelsHidden()
-                            .padding()
-                            .shadow(radius: 5)
-                            //.transition(.opacity) // Add transition animation [11]
-                            .glassEffect(in: .rect(cornerRadius: 16.0))
-                        }
+                      
                         
                         
                         
@@ -248,6 +255,7 @@ struct ContentView: View {
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 if newPhase == .active {
                     // Reset the picker to the current day whenever the app comes to the foreground
+                    showPicker = false
                     selectedDate = Date()
                 }
             }
@@ -307,8 +315,8 @@ struct ContentView: View {
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(colorScheme == .dark
-                      ? Color.white.opacity(0.05)   // Apple dark-mode card feel
-                      : Color.black.opacity(0.05)    // Light-mode card feel
+                      ? Color.white.opacity(0.1)   // Apple dark-mode card feel
+                      : Color.black.opacity(0.1)    // Light-mode card feel
         ))
     }
     
@@ -357,7 +365,7 @@ struct ContentView: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 20))
-                    .foregroundColor(.white)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
                     .frame(width: 60, height: 60)
                     //.background(Color(red: 0, green: 0, blue: 0.5))
                     .glassEffect()
@@ -385,18 +393,6 @@ struct ContentView: View {
                 .frame(width: 20, height: 20)
                 
         }
-    }
-    
-    var overlayDatePicker: some View {
-        DatePicker(
-          "",
-          selection: $selectedDate,
-          displayedComponents: [.date]
-        )
-
-        //.colorMultiply(.clear)
-        .blendMode(.destinationOver)
-   
     }
     
     func updateHabitCount() {

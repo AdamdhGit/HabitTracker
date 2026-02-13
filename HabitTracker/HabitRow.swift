@@ -32,7 +32,7 @@ struct HabitRow: View {
                            .frame(width: 60, height: 60)    // target size
                            .contentShape(Circle())
                     )
-                    .foregroundStyle(returnRowColor(habit: habit))
+                   .foregroundStyle(returnRowColor(habit: habit))
                 
             }
             
@@ -48,10 +48,10 @@ struct HabitRow: View {
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(isCompletedOnSelectedDate()
-                      ? Color.green.opacity(0.12)
+                      ? Color.green.opacity(0.15)
                       : (colorScheme == .dark
                          ? Color.white.opacity(0.1)
-                         : Color.black.opacity(0.08)))
+                         : Color.black.opacity(0.1)))
         )
         //.padding
        
