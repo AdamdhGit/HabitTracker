@@ -11,9 +11,11 @@
         <attribute name="onThursday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="onTuesday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="onWednesday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="position" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="specificDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="time" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="visualTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="completions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="HabitCompletion" inverseName="habit" inverseEntity="HabitCompletion"/>
     </entity>
     <entity name="HabitCompletion" representedClassName="HabitCompletion" syncable="YES" codeGenerationType="class">

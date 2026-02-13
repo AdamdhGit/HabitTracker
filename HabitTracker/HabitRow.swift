@@ -43,6 +43,14 @@ struct HabitRow: View {
                 .foregroundStyle(isCompletedOnSelectedDate() ? .secondary : .primary)
             
             Spacer()
+            
+            if let time = habit.visualTime {
+                Text(time, format: .dateTime.hour().minute())
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.trailing)
+            }
+            
         }
         .padding(7)
         .background(

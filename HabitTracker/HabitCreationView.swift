@@ -38,6 +38,8 @@ struct HabitCreationView: View {
     @State private var repeatingEnabled = true
     @State private var selectedDate = Date()
     
+    @State private var selectedVisualTime = Date()
+    
     let notificationOptions = [
         "At time",
         "5 minutes before",
@@ -348,6 +350,12 @@ struct HabitCreationView: View {
             newItem.id = UUID()
         
         newItem.isRepeating = repeatingEnabled
+        
+        if hasSpecificTime {
+            newItem.visualTime = specificTime
+        } else {
+            newItem.visualTime = nil
+        }
         
         if repeatingEnabled {
             //the set just takes into account the index which matches the value of the days. its not looking at the day value, but by matching the index its the equivalent of matching the day value. and assigning whether each day is true in the actual object below.

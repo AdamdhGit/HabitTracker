@@ -16,7 +16,11 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var moc
     
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
+        sortDescriptors: [
+            // Use 'order: .forward' instead of 'ascending: true'
+            SortDescriptor(\Habit.position, order: .forward),
+            SortDescriptor(\Habit.title, order: .forward)
+        ],
         animation: .default
     ) private var habits: FetchedResults<Habit>
     
@@ -46,6 +50,8 @@ struct ContentView: View {
     
     @State private var selectedDate = Date()
     @State private var showPicker = false
+    
+    @State private var editMode: EditMode = .inactive
 
     var body: some View {
         
@@ -55,6 +61,7 @@ struct ContentView: View {
                 VStack{
                     if showHabitCreation {
                         Spacer().frame(height: 44)
+                        //fills top bar button space when habit creation is opened and top bar buttons are hidden
                     }
                     Spacer()
                 }
@@ -63,6 +70,7 @@ struct ContentView: View {
                 List{
                     
                     Spacer().frame(height: 30)
+                    //pushes list down
                     
                     //reminders
                     if showReminders {
@@ -84,11 +92,61 @@ struct ContentView: View {
                     // show "Daily" only if there’s at least one
                     //before: if !dailyhabits.isEmpty
                     if !habitsForSelectedDate.isEmpty {
-                        dayTitle
+                        HStack{
+                            dayTitle
+                            //today, yesterday, date, etc.
+                         
+                    
+                        Spacer()
+                            Button {
+                                withAnimation {
+                                    // Toggles between active and inactive states
+                                    editMode = (editMode == .active) ? .inactive : .active
+                                }
+                            } label: {
+                                // Switch the icon based on the current state
+                                Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(.secondary)
+                                    .padding(12)
+                                //adds to tap radius
+                                    .contentShape(Rectangle())
+                                //contentShape treats hitbox like a "block of wood", everything tappable in it; otherwise have to hit exact pixels drawn
+                            }
+                            .padding(.top, 12)
+                            .tint(colorScheme == .dark ? .white : .black)
+                            .buttonStyle(.borderless) // Essential for tapping inside List rows
+                            .listRowSeparator(.hidden)
+                            //buttonStyle borderless to inherit taps and ignore tapGesture blocking it on list
+                          }.listRowSeparator(.hidden)
+                        
                     }
                     
                     ForEach(timesOfDay, id: \.self) { time in
+                        
                         let items = habitsForSelectedDate.filter { $0.time == time }
+                            .sorted { h1, h2 in
+                                    // 1. Sort by visualTime (nils stay at the bottom)
+                                    let t1 = h1.visualTime ?? .distantFuture
+                                    let t2 = h2.visualTime ?? .distantFuture
+                                    if t1 != t2 { return t1 < t2 }
+                                    
+                                    // 2. For items with the same time (or both nil), use position
+                                    if h1.position != h2.position {
+                                        return h1.position < h2.position
+                                    }
+                                    
+                                    // 3. Fallback to title
+                                    return (h1.title ?? "") < (h2.title ?? "")
+                                }
+                            /*
+                            .sorted {
+                                    // Visual-time items always first; nil treated as distantFuture
+                                    ($0.visualTime ?? .distantFuture) < ($1.visualTime ?? .distantFuture)
+                               }
+                        */
+                        //preceeding items displayed before following items based on time
+                        //to handle nils, we use .distantFuture as a placeholder date for ascending sort order.
                         
                         //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
                         
@@ -105,7 +163,9 @@ struct ContentView: View {
                             //habits listed
                             ForEach(items) { i in
                                 HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
-                                
+                                .moveDisabled(i.visualTime != nil)
+                            }.onMove { indices, newOffset in
+                                moveHabit(from: indices, to: newOffset, within: items)
                             }
                             //end habits
                         }
@@ -114,6 +174,7 @@ struct ContentView: View {
                     
                 }
                 .listStyle(.plain)
+                .environment(\.editMode, $editMode)
                 .scrollIndicators(.hidden)
                 .onTapGesture {
                     isReminderFocused = false
@@ -444,6 +505,18 @@ struct ContentView: View {
                 return false
             }
         }
+    }
+
+    private func moveHabit(from source: IndexSet, to destination: Int, within currentItems: [Habit]) {
+        var revisedItems = currentItems
+        revisedItems.move(fromOffsets: source, toOffset: destination)
+        
+        // Update the position integers
+        for index in 0..<revisedItems.count {
+            revisedItems[index].position = Int16(index)
+        }
+        
+        try? moc.save()
     }
 
 
