@@ -13,6 +13,8 @@ struct ContentView: View {
     
     @Environment(\.scenePhase) var scenePhase
     
+    let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+    
     @Environment(\.managedObjectContext) private var moc
     
     @FetchRequest(
@@ -168,7 +170,8 @@ struct ContentView: View {
                                     
                                     HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
                                         .moveDisabled(i.visualTime != nil)
-                                        .contentShape(.dragPreview, RoundedRectangle(cornerRadius: 14))
+                                        .contentShape(.dragPreview, Rectangle())
+                                    
                                     //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
                                         
                                 }.onMove { indices, newOffset in
@@ -232,19 +235,25 @@ struct ContentView: View {
                 
 
                 //MARK: date picker
-                    VStack{
-                        DatePicker(
-                            "Select Date",
-                            selection: $selectedDate,
-                            displayedComponents: [.date]
-                        )
-                        .datePickerStyle(.graphical)
-                        .frame(width: 320, height: 400)
-                        
-                        .labelsHidden()
-                        //.transition(.opacity) // Add transition animation [11]
-                        .glassEffect(in: .rect(cornerRadius: 16.0))
-                    }
+                
+                        HStack{
+                            DatePicker(
+                                "Select Date",
+                                selection: $selectedDate,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.graphical)
+                            .frame(width: 320, height: 320)
+                            .padding(.horizontal)
+                            .labelsHidden()
+                            //.transition(.opacity) // Add transition animation [11]
+                            .glassEffect(in: .rect(cornerRadius: 16.0))
+                            if isIPad{
+                                Spacer()
+                            }
+                        }
+                    
+                  
                     .padding(.top, 60)
                     .opacity(showPicker ? 1 : 0)
                     .allowsHitTesting(showPicker)
