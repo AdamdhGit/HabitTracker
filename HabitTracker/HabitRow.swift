@@ -61,17 +61,16 @@ struct HabitRow: View {
                          ? Color.white.opacity(0.1)
                          : Color.black.opacity(0.1)))
         )
-        //.padding
-       
         .clipShape(RoundedRectangle(cornerRadius: 14))
     
+        
     // 3. The Row Background - Makes the area behind your card invisible
         .listRowBackground(Color.clear)
     
     // 4. Insets - This controls the spacing between the rows
         .listRowInsets(EdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 10))
-    
         .listRowSeparator(.hidden)
+        
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 

@@ -65,67 +65,70 @@ struct ContentView: View {
                     }
                     Spacer()
                 }
-                
-                //list habits
-                List{
+                VStack{
+                    Spacer().frame(height: 5)
+                    //spacer keeps list in safe area
                     
-                    Spacer().frame(height: 30)
-                    //pushes list down
-                    
-                    //reminders
-                    if showReminders {
-                        VStack(alignment: .leading) {
-                            remindersText
-                            remindersTextEditor
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                    
-                    // filters habits by morning/afternoon/evening
-                    /*
-                    let dailyHabits = timesOfDay.flatMap { time in
-                        habitsForSelectedDate.filter { $0.time == time }
-                    }
-                     */
-                    
-                    // show "Daily" only if there’s at least one
-                    //before: if !dailyhabits.isEmpty
-                    if !habitsForSelectedDate.isEmpty {
-                        HStack{
-                            dayTitle
-                            //today, yesterday, date, etc.
-                         
-                    
-                        Spacer()
-                            Button {
-                                withAnimation {
-                                    // Toggles between active and inactive states
-                                    editMode = (editMode == .active) ? .inactive : .active
-                                }
-                            } label: {
-                                // Switch the icon based on the current state
-                                Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(.secondary)
-                                    .padding(12)
-                                //adds to tap radius
-                                    .contentShape(Rectangle())
-                                //contentShape treats hitbox like a "block of wood", everything tappable in it; otherwise have to hit exact pixels drawn
+                    //list habits
+                    List{
+                        
+                        Spacer().frame(height: 20).listRowSeparator(.hidden)
+                        //pushes list down
+                        
+                        //reminders
+                        if showReminders {
+                            VStack(alignment: .leading) {
+                                remindersText
+                                remindersTextEditor
                             }
-                            .padding(.top, 12)
-                            .tint(colorScheme == .dark ? .white : .black)
-                            .buttonStyle(.borderless) // Essential for tapping inside List rows
                             .listRowSeparator(.hidden)
-                            //buttonStyle borderless to inherit taps and ignore tapGesture blocking it on list
-                          }.listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
                         
-                    }
-                    
-                    ForEach(timesOfDay, id: \.self) { time in
+                        // filters habits by morning/afternoon/evening
+                        /*
+                         let dailyHabits = timesOfDay.flatMap { time in
+                         habitsForSelectedDate.filter { $0.time == time }
+                         }
+                         */
                         
-                        let items = habitsForSelectedDate.filter { $0.time == time }
-                            .sorted { h1, h2 in
+                        // show "Daily" only if there’s at least one
+                        //before: if !dailyhabits.isEmpty
+                        if !habitsForSelectedDate.isEmpty {
+                            HStack{
+                                dayTitle
+                                //today, yesterday, date, etc.
+                                
+                                
+                                Spacer()
+                                Button {
+                                    withAnimation {
+                                        // Toggles between active and inactive states
+                                        editMode = (editMode == .active) ? .inactive : .active
+                                    }
+                                } label: {
+                                    // Switch the icon based on the current state
+                                    Image(systemName: editMode == .active ? "checkmark.circle.fill" : "arrow.up.arrow.down")
+                                        .font(.system(size: 20))
+                                        .foregroundStyle(.secondary)
+                                        .padding(12)
+                                    //adds to tap radius
+                                        .contentShape(Rectangle())
+                                    //contentShape treats hitbox like a "block of wood", everything tappable in it; otherwise have to hit exact pixels drawn
+                                }
+                                .padding(.top, 12)
+                                .tint(colorScheme == .dark ? .white : .black)
+                                .buttonStyle(.borderless) // Essential for tapping inside List rows
+                                .listRowSeparator(.hidden)
+                                //buttonStyle borderless to inherit taps and ignore tapGesture blocking it on list
+                            }.listRowSeparator(.hidden)
+                            
+                        }
+                        
+                        ForEach(timesOfDay, id: \.self) { time in
+                            
+                            let items = habitsForSelectedDate.filter { $0.time == time }
+                                .sorted { h1, h2 in
                                     // 1. Sort by visualTime (nils stay at the bottom)
                                     let t1 = h1.visualTime ?? .distantFuture
                                     let t2 = h2.visualTime ?? .distantFuture
@@ -140,47 +143,52 @@ struct ContentView: View {
                                     return (h1.title ?? "") < (h2.title ?? "")
                                 }
                             /*
-                            .sorted {
-                                    // Visual-time items always first; nil treated as distantFuture
-                                    ($0.visualTime ?? .distantFuture) < ($1.visualTime ?? .distantFuture)
-                               }
-                        */
-                        //preceeding items displayed before following items based on time
-                        //to handle nils, we use .distantFuture as a placeholder date for ascending sort order.
-                        
-                        //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
-                        
-                        if !items.isEmpty {
+                             .sorted {
+                             // Visual-time items always first; nil treated as distantFuture
+                             ($0.visualTime ?? .distantFuture) < ($1.visualTime ?? .distantFuture)
+                             }
+                             */
+                            //preceeding items displayed before following items based on time
+                            //to handle nils, we use .distantFuture as a placeholder date for ascending sort order.
                             
-                            // Title
-                            Text(time)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.secondary.opacity(0.85))
-                                .kerning(0.5)
+                            //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
                             
-                            
-                            //habits listed
-                            ForEach(items) { i in
-                                HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
-                                .moveDisabled(i.visualTime != nil)
-                            }.onMove { indices, newOffset in
-                                moveHabit(from: indices, to: newOffset, within: items)
+                            if !items.isEmpty {
+                                
+                                // Title
+                                Text(time)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.secondary.opacity(0.85))
+                                    .kerning(0.5)
+                                
+                                
+                                //habits listed
+                                ForEach(items) { i in
+                                    
+                                    HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
+                                        .moveDisabled(i.visualTime != nil)
+                                        .contentShape(.dragPreview, RoundedRectangle(cornerRadius: 14))
+                                    //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
+                                        
+                                }.onMove { indices, newOffset in
+                                    moveHabit(from: indices, to: newOffset, within: items)
+                                }
+                                
+                                //end habits
                             }
-                            //end habits
+                            //end items
                         }
-                        //end items
+                        
                     }
-                    
+                    .listStyle(.plain)
+                    .environment(\.editMode, $editMode)
+                    .scrollIndicators(.hidden)
+                    .onTapGesture {
+                        isReminderFocused = false
+                        
+                    }
                 }
-                .listStyle(.plain)
-                .environment(\.editMode, $editMode)
-                .scrollIndicators(.hidden)
-                .onTapGesture {
-                    isReminderFocused = false
-                    
-                }
-                
                 if !showHabitCreation{
                     // Floating bottom-center button
                     createHabitPlusButton
