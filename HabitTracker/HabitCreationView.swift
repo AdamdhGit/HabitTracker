@@ -7,6 +7,7 @@
 
 import CoreData
 import SwiftUI
+import UserNotifications
 
 struct HabitCreationView: View {
     
@@ -30,7 +31,6 @@ struct HabitCreationView: View {
     @State private var selectedDays: Set<Int> = Set(0...6) // default: every day
     
     @State private var notificationsEnabled = false
-    @State private var notificationOffset = "At time"
     
     @State private var hasSpecificTime = false
     @State private var specificTime = Date()
@@ -38,8 +38,7 @@ struct HabitCreationView: View {
     @State private var repeatingEnabled = true
     @State private var selectedDate = Date()
     
-    @State private var selectedVisualTime = Date()
-    
+    @State private var notificationOffset = 0
     let notificationOptions = [
         "At time",
         "5 minutes before",
@@ -47,6 +46,7 @@ struct HabitCreationView: View {
         "30 minutes before",
         "1 hour before"
     ]
+    let offsetValues = [0, 5, 15, 30, 60]
     
     
     var body: some View {
@@ -146,6 +146,11 @@ struct HabitCreationView: View {
         }
         .onChange(of: selectedDays) { _, _ in
             isAddEntryFocused = false
+        }
+        .onChange(of: notificationsEnabled) { oldValue, newValue in
+            if newValue {
+                requestNotificationPermission()
+            }
         }
 
     }
@@ -330,8 +335,10 @@ struct HabitCreationView: View {
         HStack{
             Spacer()
             Picker("Notification Choices", selection: $notificationOffset) {
-                ForEach(notificationOptions, id: \.self) {
-                    Text($0)
+                ForEach(notificationOptions.indices, id: \.self) { i in
+                    Text(notificationOptions[i])
+                        .tag(offsetValues[i])
+                    //tag stores the value of the offset value's index when an option is chosen. essentially mapping. 1 line of code. otherwise would map with a switch or if statements when save each entry.
                 }
             }
             .labelsHidden()
@@ -355,6 +362,15 @@ struct HabitCreationView: View {
             newItem.visualTime = specificTime
         } else {
             newItem.visualTime = nil
+        }
+        
+        if notificationsEnabled {
+            newItem.notificationsEnabled = true
+            newItem.notificationTime = specificTime
+            newItem.notificationOffset = Int16(notificationOffset)
+        } else {
+            newItem.notificationsEnabled = false
+            newItem.notificationTime = nil
         }
         
         if repeatingEnabled {
@@ -399,8 +415,137 @@ struct HabitCreationView: View {
         try? moc.save()
 
         print (newItem.isCompleted)
+        
+        if newItem.notificationsEnabled {
+            
+            if let id = newItem.id?.uuidString {
+                   UNUserNotificationCenter.current()
+                       .removePendingNotificationRequests(withIdentifiers: [id])
+               }
+            //prevents duplicate notifications
+            
+            if newItem.isRepeating {
+                scheduleRepeatingNotification(for: newItem)
+            } else {
+                scheduleSingleDayNotification(for: newItem)
+            }
+            
+            print("notification scheduled")
+        }
+        
         newHabitText = ""
     }
+    
+    func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("Error requesting notifications: \(error)")
+            } else {
+                print("Notifications permission granted: \(granted)")
+            }
+        }
+    }
+    
+    func scheduleRepeatingNotification(for habit: Habit) {
+        guard habit.notificationsEnabled else { return }
+        guard let time = habit.notificationTime else { return }
+
+        let calendar = Calendar.current
+
+        // Extract hour + minute from stored time
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+
+        // Build a temporary full date using today
+        var todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        todayComponents.hour = timeComponents.hour
+        todayComponents.minute = timeComponents.minute
+
+        guard let todayDate = calendar.date(from: todayComponents) else { return }
+
+        // Apply offset
+        let offsetMinutes = Int(habit.notificationOffset)
+        let adjustedDate = calendar.date(byAdding: .minute,
+                                         value: -offsetMinutes,
+                                         to: todayDate) ?? todayDate
+
+        // Extract final hour/minute
+        let finalComponents = calendar.dateComponents([.hour, .minute], from: adjustedDate)
+
+        let content = UNMutableNotificationContent()
+        content.title = habit.title ?? "Habit Reminder"
+        if offsetMinutes > 0 {
+            content.body = "In \(offsetMinutes == 60 ? 1 : offsetMinutes) \(offsetMinutes == 60 ? "Hour" : "Minutes")"
+        }
+        content.sound = .default
+
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: finalComponents,
+            repeats: true
+        )
+
+        let request = UNNotificationRequest(
+            identifier: habit.id?.uuidString ?? UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request)
+    }
+
+
+    
+    func scheduleSingleDayNotification(for habit: Habit) {
+        guard habit.notificationsEnabled else { return }
+        guard let time = habit.notificationTime else { return }
+        guard let specificDate = habit.specificDate else { return }
+
+        let calendar = Calendar.current
+
+        // 1️⃣ Extract hour + minute from stored time
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+
+        // 2️⃣ Combine specific date with selected time
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: specificDate)
+        dateComponents.hour = timeComponents.hour
+        dateComponents.minute = timeComponents.minute
+
+        guard let fullDate = calendar.date(from: dateComponents) else { return }
+
+        // 3️⃣ Apply offset
+        let offsetMinutes = Int(habit.notificationOffset)
+        let finalDate = calendar.date(byAdding: .minute,
+                                       value: -offsetMinutes,
+                                       to: fullDate) ?? fullDate
+
+        // 4️⃣ Prevent scheduling past notifications
+        guard finalDate > Date() else { return }
+
+        // 5️⃣ Create content
+        let content = UNMutableNotificationContent()
+        content.title = habit.title ?? "Habit Reminder"
+        if offsetMinutes > 0 {
+            content.body = "In \(offsetMinutes == 60 ? 1 : offsetMinutes) \(offsetMinutes == 60 ? "Hour" : "Minutes")"
+        }
+        content.sound = .default
+
+        // 6️⃣ Create trigger (single fire)
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: calendar.dateComponents(
+                [.year, .month, .day, .hour, .minute],
+                from: finalDate
+            ),
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: habit.id?.uuidString ?? UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request)
+    }
+
     
     
 }

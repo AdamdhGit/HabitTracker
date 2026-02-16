@@ -44,6 +44,12 @@ struct HabitRow: View {
             
             Spacer()
             
+            if habit.notificationsEnabled {
+                Image(systemName: "bell")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            
             if let time = habit.visualTime {
                 Text(time, format: .dateTime.hour().minute())
                     .font(.callout)

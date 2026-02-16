@@ -4,6 +4,9 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isCompleted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isRepeating" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="notificationOffset" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="notificationsEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="notificationTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="onFriday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="onMonday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="onSaturday" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>

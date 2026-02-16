@@ -127,61 +127,72 @@ struct ContentView: View {
                             
                         }
                         
-                        ForEach(timesOfDay, id: \.self) { time in
+                        if habitsForSelectedDate.isEmpty {
                             
-                            let items = habitsForSelectedDate.filter { $0.time == time }
-                                .sorted { h1, h2 in
-                                    // 1. Sort by visualTime (nils stay at the bottom)
-                                    let t1 = h1.visualTime ?? .distantFuture
-                                    let t2 = h2.visualTime ?? .distantFuture
-                                    if t1 != t2 { return t1 < t2 }
+                            ContentUnavailableView(
+                                    "No Tasks",
+                                    systemImage: "checkmark.circle",
+                                    description: Text("Tap the + button to add your first task")
+                                ).listRowSeparator(.hidden)
+                            
+                        } else {
+                            ForEach(timesOfDay, id: \.self) { time in
+                                
+                                let items = habitsForSelectedDate.filter { $0.time == time }
+                                    .sorted { h1, h2 in
+                                        // 1. Sort by visualTime (nils stay at the bottom)
+                                        let t1 = h1.visualTime ?? .distantFuture
+                                        let t2 = h2.visualTime ?? .distantFuture
+                                        if t1 != t2 { return t1 < t2 }
+                                        
+                                        // 2. For items with the same time (or both nil), use position
+                                        if h1.position != h2.position {
+                                            return h1.position < h2.position
+                                        }
+                                        
+                                        // 3. Fallback to title
+                                        return (h1.title ?? "") < (h2.title ?? "")
+                                    }
+                                /*
+                                 .sorted {
+                                 // Visual-time items always first; nil treated as distantFuture
+                                 ($0.visualTime ?? .distantFuture) < ($1.visualTime ?? .distantFuture)
+                                 }
+                                 */
+                                //preceeding items displayed before following items based on time
+                                //to handle nils, we use .distantFuture as a placeholder date for ascending sort order.
+                                
+                                //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
+                                
+                                if !items.isEmpty {
                                     
-                                    // 2. For items with the same time (or both nil), use position
-                                    if h1.position != h2.position {
-                                        return h1.position < h2.position
+                                    // Title
+                                    Text(time)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.secondary.opacity(0.85))
+                                        .kerning(0.5)
+                                    
+                                    
+                                    //habits listed
+                                    ForEach(items) { i in
+                                        
+                                        HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
+                                            .moveDisabled(i.visualTime != nil)
+                                            .contentShape(.dragPreview, Rectangle())
+                                        
+                                        //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
+                                            
+                                    }.onMove { indices, newOffset in
+                                        moveHabit(from: indices, to: newOffset, within: items)
                                     }
                                     
-                                    // 3. Fallback to title
-                                    return (h1.title ?? "") < (h2.title ?? "")
+                                    //end habits
                                 }
-                            /*
-                             .sorted {
-                             // Visual-time items always first; nil treated as distantFuture
-                             ($0.visualTime ?? .distantFuture) < ($1.visualTime ?? .distantFuture)
-                             }
-                             */
-                            //preceeding items displayed before following items based on time
-                            //to handle nils, we use .distantFuture as a placeholder date for ascending sort order.
-                            
-                            //first goes through morning and draws habits that match the timesOfDay reference to it's own time value, then afernoon, then evening.
-                            
-                            if !items.isEmpty {
-                                
-                                // Title
-                                Text(time)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.secondary.opacity(0.85))
-                                    .kerning(0.5)
-                                
-                                
-                                //habits listed
-                                ForEach(items) { i in
-                                    
-                                    HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
-                                        .moveDisabled(i.visualTime != nil)
-                                        .contentShape(.dragPreview, Rectangle())
-                                    
-                                    //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
-                                        
-                                }.onMove { indices, newOffset in
-                                    moveHabit(from: indices, to: newOffset, within: items)
-                                }
-                                
-                                //end habits
+                                //end items
                             }
-                            //end items
                         }
+                      
                         
                     }
                     .listStyle(.plain)
@@ -336,6 +347,7 @@ struct ContentView: View {
                     showPicker = false
                     selectedDate = Date()
                 }
+                
             }
             .onAppear {
                 updateHabitCount()
@@ -535,6 +547,8 @@ struct ContentView: View {
         
         try? moc.save()
     }
+
+
 
 
 }
