@@ -1,17 +1,19 @@
 //
-//  HabitCreationView.swift
+//  HabitEditView.swift
 //  HabitTracker
 //
-//  Created by Adam Heidmann on 2/8/26.
+//  Created by Adam Heidmann on 2/16/26.
 //
 
 import CoreData
 import SwiftUI
 import UserNotifications
 
-struct HabitCreationView: View {
+struct HabitEditView: View {
     
-    @Binding var showHabitCreation:Bool
+    @State var habit: Habit
+    
+    //@Binding var showHabitCreation:Bool
     
     @Environment(\.managedObjectContext) private var moc
     @Environment(\.colorScheme) var colorScheme
@@ -24,9 +26,6 @@ struct HabitCreationView: View {
     @State private var newHabitTime = "Morning"
     //@State private var newHabitCategory = "Daily"
     
-    @FocusState.Binding var isAddEntryFocused: Bool
-    
-    //
     let days = ["M", "T", "W", "T", "F", "S", "S"]
     @State private var selectedDays: Set<Int> = Set(0...6) // default: every day
     
@@ -54,13 +53,13 @@ struct HabitCreationView: View {
         ZStack{
             
             ScrollView{
-                //X and Save
-                xAndSaveButtons.padding()
+            
                 
                 HStack {
-                    newHabitTextField
                     
                     timeOfDayPicker
+                    Spacer()
+                    saveButton.padding()
                     
                 }.padding(.horizontal).padding(.bottom, 15)
                 
@@ -130,23 +129,6 @@ struct HabitCreationView: View {
                 selectedDays = Set(0...6)
             }
         })
-        .onChange(of: notificationsEnabled) { _, _ in
-            withAnimation{
-                isAddEntryFocused = false
-            }
-        }
-        .onChange(of: notificationOffset) { _, _ in
-            isAddEntryFocused = false
-        }
-        .onChange(of: hasSpecificTime) { _, _ in
-            isAddEntryFocused = false
-        }
-        .onChange(of: specificTime) { _, _ in
-            isAddEntryFocused = false
-        }
-        .onChange(of: selectedDays) { _, _ in
-            isAddEntryFocused = false
-        }
         .onChange(of: notificationsEnabled) { oldValue, newValue in
             if newValue {
                 requestNotificationPermission()
@@ -155,30 +137,13 @@ struct HabitCreationView: View {
 
     }
     
-    var xAndSaveButtons: some View {
+    var saveButton: some View {
         HStack{
-            Button{
-                newHabitText = ""
-                showHabitCreation = false
-            }label:{
-                Image(systemName: "x.circle")
-                    .font(.system(size: 24))
-                
-            }
-            .tint(colorScheme == .dark ? .white : .black)
-            .padding(16) //increases tappable area
-            .contentShape(Circle()) //tells SwiftUI the hit shape
-            .frame(width: 44, height: 44)
-            .background(
-                Circle()
-                    .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-            )
+     
             Spacer()
             
             Button {
-                
                 createHabit()
-                showHabitCreation = false
             } label: {
                 Text("Save")
                     .foregroundStyle(
@@ -202,19 +167,6 @@ struct HabitCreationView: View {
             )
             
         }
-    }
-    
-    var newHabitTextField: some View {
-        TextField("ex: Workout", text: $newHabitText)
-            .tint(colorScheme == .dark ? .white : .black)
-            .focused($isAddEntryFocused)
-            .padding()
-            .frame(height: 44)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-            )
-            .foregroundStyle(colorScheme == .dark ? .white : .black)
     }
     
     var timeOfDayPicker: some View {
@@ -547,14 +499,6 @@ struct HabitCreationView: View {
 
     
     
-}
-
-#Preview {
-    
-    let dataController = DataController()
-    
-    // Pass its context into ContentView
-    HabitCreationView(showHabitCreation: .constant(false), isAddEntryFocused: FocusState<Bool>().projectedValue).environment(\.managedObjectContext, dataController.container.viewContext)
 }
 
 //MARK: daily/goals picker

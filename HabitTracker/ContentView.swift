@@ -28,14 +28,10 @@ struct ContentView: View {
     
     @Environment(\.colorScheme) var colorScheme
     //use enus for type safety repeating strings throughout.
-   
+    
     var timesOfDay : [String] = ["Morning", "Afternoon", "Evening"]
     
     @State private var showHabitCreation = false
-    @AppStorage("ShowReminders") private var showReminders = false
-    @AppStorage("ReminderText") private var reminderText = ""
-    
-    @FocusState private var isReminderFocused: Bool
     
     @FocusState var isAddEntryFocused: Bool
     
@@ -44,7 +40,7 @@ struct ContentView: View {
     
     @State private var completedCount: Int = 0
     @State private var totalHabits: Int = 0 // Update this when habits are added/deleted
-
+    
     var progressAmount: CGFloat {
         guard totalHabits > 0 else { return 0 }
         return CGFloat(completedCount) / CGFloat(totalHabits)
@@ -54,10 +50,12 @@ struct ContentView: View {
     @State private var showPicker = false
     
     @State private var editMode: EditMode = .inactive
-
+    
+    @State private var selectedHabitForDetail: Habit?
+    
     var body: some View {
         
-        NavigationStack{
+        
             ZStack(alignment: .top){
                 
                 VStack{
@@ -76,16 +74,6 @@ struct ContentView: View {
                         
                         Spacer().frame(height: 20).listRowSeparator(.hidden)
                         //pushes list down
-                        
-                        //reminders
-                        if showReminders {
-                            VStack(alignment: .leading) {
-                                remindersText
-                                remindersTextEditor
-                            }
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                        }
                         
                         // filters habits by morning/afternoon/evening
                         /*
@@ -130,10 +118,10 @@ struct ContentView: View {
                         if habitsForSelectedDate.isEmpty {
                             
                             ContentUnavailableView(
-                                    "No Tasks",
-                                    systemImage: "checkmark.circle",
-                                    description: Text("Tap the + button to add your first task")
-                                ).listRowSeparator(.hidden)
+                                "No Tasks",
+                                systemImage: "checkmark.circle",
+                                description: Text("Tap the + button to add your first task")
+                            ).listRowSeparator(.hidden)
                             
                         } else {
                             ForEach(timesOfDay, id: \.self) { time in
@@ -176,13 +164,19 @@ struct ContentView: View {
                                     
                                     //habits listed
                                     ForEach(items) { i in
-                                        
-                                        HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
-                                            .moveDisabled(i.visualTime != nil)
-                                            .contentShape(.dragPreview, Rectangle())
-                                        
+
+                                            HabitRow(completedCount: $completedCount, habit: i, selectedDate: $selectedDate)
+                                                .moveDisabled(i.visualTime != nil)
+                                                .contentShape(.dragPreview, Rectangle())
+                                                .onTapGesture {
+                                                        selectedHabitForDetail = i
+                                                    }
+                                                .listRowInsets(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 10))
+                                                .listRowBackground(Color.clear)
+                                                .listRowSeparator(.hidden)
+
                                         //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
-                                            
+                                        
                                     }.onMove { indices, newOffset in
                                         moveHabit(from: indices, to: newOffset, within: items)
                                     }
@@ -192,16 +186,13 @@ struct ContentView: View {
                                 //end items
                             }
                         }
-                      
+                        
                         
                     }
+                    .environment(\.defaultMinListRowHeight, 1)
                     .listStyle(.plain)
                     .environment(\.editMode, $editMode)
                     .scrollIndicators(.hidden)
-                    .onTapGesture {
-                        isReminderFocused = false
-                        
-                    }
                 }
                 if !showHabitCreation{
                     // Floating bottom-center button
@@ -213,8 +204,9 @@ struct ContentView: View {
                     VStack{
                         HStack{
                             Spacer()
+                            
                             Menu {
-                                Toggle("Show Reminders", isOn: $showReminders)
+                               //add buttons
                             } label: {
                                 Image(systemName: "slider.horizontal.2.square")
                                     .font(.system(size: 16))
@@ -235,42 +227,42 @@ struct ContentView: View {
                 //MARK: date picker background tap off
                 if showPicker {
                     Color.black.opacity(0.001) // Invisible but intercepts taps
-                            .ignoresSafeArea()
-                            .onTapGesture {
-                             
-                                    showPicker = false
-                                
-                            }
-              
-                }
-                
-
-                //MARK: date picker
-                
-                        HStack{
-                            DatePicker(
-                                "Select Date",
-                                selection: $selectedDate,
-                                displayedComponents: [.date]
-                            )
-                            .datePickerStyle(.graphical)
-                            .frame(width: 320, height: 320)
-                            .padding(.horizontal)
-                            .labelsHidden()
-                            //.transition(.opacity) // Add transition animation [11]
-                            .glassEffect(in: .rect(cornerRadius: 16.0))
-                            if isIPad{
-                                Spacer()
-                            }
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            
+                            showPicker = false
+                            
                         }
                     
-                  
-                    .padding(.top, 60)
-                    .opacity(showPicker ? 1 : 0)
-                    .allowsHitTesting(showPicker)
+                }
                 
                 
-
+                //MARK: date picker
+                
+                HStack{
+                    DatePicker(
+                        "Select Date",
+                        selection: $selectedDate,
+                        displayedComponents: [.date]
+                    )
+                    .datePickerStyle(.graphical)
+                    .frame(width: 320, height: 320)
+                    .padding(.horizontal)
+                    .labelsHidden()
+                    //.transition(.opacity) // Add transition animation [11]
+                    .glassEffect(in: .rect(cornerRadius: 16.0))
+                    if isIPad{
+                        Spacer()
+                    }
+                }
+                
+                
+                .padding(.top, 60)
+                .opacity(showPicker ? 1 : 0)
+                .allowsHitTesting(showPicker)
+                
+                
+                
                 if !showHabitCreation {
                     //MARK: date picker button and progress circles
                     VStack{
@@ -302,7 +294,7 @@ struct ContentView: View {
                             Spacer()
                         }.frame(height: 44).padding(.leading)
                         
-                      
+                        
                         
                         
                         
@@ -359,55 +351,12 @@ struct ContentView: View {
             .onChange(of: selectedDate, {
                 updateHabitCount()
             })
-
-        }
+            .sheet(item: $selectedHabitForDetail) { habit in
+                HabitDetailView(habit: habit)
+            }
+            
         
-    }
-    
-    var remindersText: some View {
-        HStack{
-            Text("Reminders")
-                .font(.title3)
-                .kerning(0.5)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .padding(.top, 12)
-            Spacer()
-            /*
-            if isReminderFocused {
-                Text("\(reminderText.count)/250")
-            }
-             */
-            
-        }
-    }
-    
-    var remindersTextEditor: some View {
-        ZStack(alignment: .topLeading) {
-            // Placeholder
-            if reminderText.isEmpty {
-                Text("Write a note...")
-                    .foregroundStyle(.secondary.opacity(1))
-                    .padding(8)
-                    .padding(.top, 5)
-                    .padding(.leading, 5)
-            }
-            
-            TextEditor(text: $reminderText)
-                .focused($isReminderFocused)
-                .scrollContentBackground(.hidden)
-                .tint(colorScheme == .dark ? .white : .black)
-                .frame(height: 120) // reasonable size
-                .padding(4)
-    
-            
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(colorScheme == .dark
-                      ? Color.white.opacity(0.1)   // Apple dark-mode card feel
-                      : Color.black.opacity(0.1)    // Light-mode card feel
-        ))
+        
     }
     
     var dayTitle: some View {
@@ -418,7 +367,7 @@ struct ContentView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
                 .padding(.top, 12)
-                
+            
         }.listRowSeparator(.hidden)
     }
     
@@ -427,7 +376,7 @@ struct ContentView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
-
+        
         if calendar.isDateInToday(date) {
             return "Today"
         } else if calendar.isDateInYesterday(date) {
@@ -450,25 +399,25 @@ struct ContentView: View {
                 
                 showHabitCreation = true
                 isAddEntryFocused = true
-                    
+                
                 
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 20))
                     .foregroundColor(colorScheme == .dark ? .white : .black)
                     .frame(width: 60, height: 60)
-                    //.background(Color(red: 0, green: 0, blue: 0.5))
+                //.background(Color(red: 0, green: 0, blue: 0.5))
                     .glassEffect()
                     .clipShape(Circle())
                 
             }
             //.buttonStyle(.glass)
             .contentShape(Circle()) // now exactly matches background
-
+            
             
         }
     }
-
+    
     
     var dailyProgressCircle: some View {
         ZStack {
@@ -481,7 +430,7 @@ struct ContentView: View {
                 .stroke(Color.green, lineWidth: 3)
                 .rotationEffect(.degrees(-90))
                 .frame(width: 20, height: 20)
-                
+            
         }
     }
     
@@ -511,7 +460,7 @@ struct ContentView: View {
         
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: selectedDate)
-
+        
         return habits.filter { habit in
             
             if habit.isRepeating {
@@ -535,7 +484,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     private func moveHabit(from source: IndexSet, to destination: Int, within currentItems: [Habit]) {
         var revisedItems = currentItems
         revisedItems.move(fromOffsets: source, toOffset: destination)
@@ -547,48 +496,48 @@ struct ContentView: View {
         
         try? moc.save()
     }
-
-
-
-
+    
+    
+    
+    
 }
 
 /*
-#Preview {
-    let dataController = DataController()
-
-    ContentView()
-        .environment(\.managedObjectContext, dataController.container.viewContext)
-}
-*/
+ #Preview {
+ let dataController = DataController()
+ 
+ ContentView()
+ .environment(\.managedObjectContext, dataController.container.viewContext)
+ }
+ */
 
 //MARK: goals
 
 /*
-@FetchRequest(
-    sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
-    predicate: NSPredicate(format: "category == %@", "Goals"),
-    animation: .default
-)
-private var goalHabits: FetchedResults<Habit>
-*/
+ @FetchRequest(
+ sortDescriptors: [NSSortDescriptor(keyPath: \Habit.title, ascending: true)],
+ predicate: NSPredicate(format: "category == %@", "Goals"),
+ animation: .default
+ )
+ private var goalHabits: FetchedResults<Habit>
+ */
 
 /*
-if !goalHabits.isEmpty {
-    Text("Goals")
-        .font(.title3)
-        .kerning(0.5)
-        .fontWeight(.semibold)
-        .foregroundStyle(.secondary)
-        .listRowSeparator(.hidden)
-    
-    ForEach(goalHabits) { i in
-        HabitRow(completedCount: $completedCount, habit: i)
-           
-        
-        
-        //this keeps the list background drag same shape as whats being dragged. matched it to my cornerRadius of my shape thats being dragged as well.
-        
-    }
-}
-*/
+ if !goalHabits.isEmpty {
+ Text("Goals")
+ .font(.title3)
+ .kerning(0.5)
+ .fontWeight(.semibold)
+ .foregroundStyle(.secondary)
+ .listRowSeparator(.hidden)
+ 
+ ForEach(goalHabits) { i in
+ HabitRow(completedCount: $completedCount, habit: i)
+ 
+ 
+ 
+ //this keeps the list background drag same shape as whats being dragged. matched it to my cornerRadius of my shape thats being dragged as well.
+ 
+ }
+ }
+ */
