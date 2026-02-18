@@ -46,9 +46,11 @@ struct HabitMonthCarouselView: View {
             ForEach(monthsToShow, id: \.self) { month in
                 VStack {
                     HStack{
+                        Spacer() //inverted since rightToLeft
                         Text(monthTitle(for: month))
-                            .font(.headline)
+                            //.font(.headline)
                             .padding(.bottom, 4)
+                            .padding(.trailing) //inverted since rightToLeft
                            
                     }
                     

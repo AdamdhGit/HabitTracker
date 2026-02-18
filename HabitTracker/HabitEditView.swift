@@ -246,9 +246,11 @@ struct HabitEditView: View {
             Text("Time of Day")            // the visible label for the picker
                 .foregroundStyle(colorScheme == .dark ? .white : .black)
             
+            
         }
         .pickerStyle(.menu)
         .tint(colorScheme == .dark ? .white : .black)
+        .padding(.horizontal, 5)
 
     }
     
@@ -366,8 +368,6 @@ struct HabitEditView: View {
             }
         }
     }
-    
-   
   
     func scheduleRepeatingNotification(for habit: Habit) {
         let center = UNUserNotificationCenter.current()

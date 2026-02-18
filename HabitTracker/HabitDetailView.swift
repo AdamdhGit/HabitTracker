@@ -52,7 +52,6 @@ struct HabitDetailView: View {
                                             .contentShape(Rectangle())    // entire 44x44 is tappable
                                     }
                                     .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                                    .padding(.leading)
                                     .tint(colorScheme == .dark ? .white : .black)
                                 } else {
                                     Button{
@@ -64,7 +63,6 @@ struct HabitDetailView: View {
                                             .contentShape(Rectangle())    // entire 44x44 is tappable
                                     }
                                     .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                                    .padding(.leading)
                                     .tint(colorScheme == .dark ? .white : .black)
                                 }
                                 
@@ -115,9 +113,29 @@ struct HabitDetailView: View {
                             //edits
                             HabitEditView(habit: habit).padding(.horizontal)
                             
+                            Button(role: .destructive) {
+                                
+                                //clear notifications of object
+                                if let baseId = habit.id?.uuidString {
+                                    let center = UNUserNotificationCenter.current()
+                                    let identifiersToRemove = (1...7).map { "\(baseId)-\($0)" } + [baseId]
+                                    center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+                                }
+                            
+                                //delete object
+                                moc.delete(habit)
+                                try? moc.save()
+                                
+                                dismiss()
+                                
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }.padding(.top, 30)
                             
                             Spacer().frame(height: 120)
                         }
+                        
+                        
                         Spacer()
                     }
                     .padding(.horizontal)
@@ -127,7 +145,7 @@ struct HabitDetailView: View {
                         gradient: Gradient(stops: [
                             // Top: Clear until the toolbar ends (approx 12%)
                             .init(color: .clear, location: 0),
-                            .init(color: .black, location: 0.12), // Fades in content below bar
+                            .init(color: .black, location: 0.1), // Fades in content below bar
                             
                             // Bottom: Solid until the home indicator area (approx 92%)
                             .init(color: .black, location: 0.85), // Fades out before bottom edge
@@ -153,6 +171,9 @@ struct HabitDetailView: View {
                     .padding(.trailing)
                     .tint(colorScheme == .dark ? .white : .black)
                 }
+                
+               
+                
                 Spacer()
             }.padding(.trailing)
             

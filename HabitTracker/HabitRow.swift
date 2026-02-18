@@ -39,21 +39,21 @@ struct HabitRow: View {
             .buttonStyle(.plain)
             
             Text(habit.title ?? "Unknown")
-                .strikethrough(isCompletedOnSelectedDate())
-                .foregroundStyle(isCompletedOnSelectedDate() ? .secondary : .primary)
+                //.strikethrough(isCompletedOnSelectedDate())
+                .foregroundStyle(isCompletedOnSelectedDate() ? .green : .primary)
             
             Spacer()
             
             
             if habit.notificationsEnabled {
                 Image(systemName: "bell")
-                    .font(.callout)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
             if let time = habit.visualTime {
                 Text(time, format: .dateTime.hour().minute())
-                    .font(.callout)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.trailing)
             }
@@ -63,7 +63,7 @@ struct HabitRow: View {
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(isCompletedOnSelectedDate()
-                      ? Color.green.opacity(0.15)
+                      ? Color.green.opacity(0.25)
                       : (colorScheme == .dark
                          ? Color.white.opacity(0.1)
                          : Color.black.opacity(0.1)))
@@ -74,13 +74,11 @@ struct HabitRow: View {
             Button(role: .destructive) {
                 
                 //clear notifications of object
-                        if let baseId = habit.id?.uuidString {
-                            let center = UNUserNotificationCenter.current()
-                            // Remove the main ID and all 7 weekday variations
-                            let identifiersToRemove = [baseId] + (1...7).map { "\(baseId)-\($0)" }
-                            center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
-                            print("🗑️ Cleaned up notifications for: \(habit.title ?? "Habit")")
-                        }
+                if let baseId = habit.id?.uuidString {
+                    let center = UNUserNotificationCenter.current()
+                    let identifiersToRemove = (1...7).map { "\(baseId)-\($0)" } + [baseId]
+                    center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+                }
             
                 //delete object
                 moc.delete(habit)
@@ -96,9 +94,9 @@ struct HabitRow: View {
         let completed = isCompletedOnSelectedDate()
         
         if colorScheme == .dark {
-            return completed ? Color.green.opacity(0.1) : Color.white.opacity(0.1)
+            return completed ? Color.green.opacity(1) : Color.white.opacity(0.1)
         } else {
-            return completed ? Color.green.opacity(0.1) : Color.black.opacity(0.1)
+            return completed ? Color.green.opacity(1) : Color.black.opacity(0.1)
         }
     }
     
