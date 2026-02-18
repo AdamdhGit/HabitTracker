@@ -74,7 +74,7 @@ struct HabitDetailView: View {
                                     .focused($editTextIsFocused)
                                     //.lineLimit(1)
                                     //.truncationMode(.tail)
-                                    .frame(width: 220)
+                                    .frame(width: 200)
                                     .submitLabel(.done)
                                     .onAppear {
                                         titleText = habit.title ?? ""
