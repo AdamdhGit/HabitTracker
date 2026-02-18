@@ -41,8 +41,9 @@ struct HabitDetailView: View {
                                 
                                 if editTextIsFocused {
                                     Button{
-                                        editTextIsFocused.toggle()
-                                        
+                                        withAnimation{
+                                            editTextIsFocused = false
+                                        }
                                         habit.title = titleText
                                         try? moc.save()
                                     }label:{
@@ -55,7 +56,9 @@ struct HabitDetailView: View {
                                     .tint(colorScheme == .dark ? .white : .black)
                                 } else {
                                     Button{
-                                        editTextIsFocused.toggle()
+                                        withAnimation{
+                                            editTextIsFocused = true
+                                        }
                                     }label:{
                                         Image(systemName: "pencil")
                                             .font(.system(size: 20))
@@ -66,9 +69,12 @@ struct HabitDetailView: View {
                                     .tint(colorScheme == .dark ? .white : .black)
                                 }
                                 
-                                
-                                TextField("Task", text: $titleText)
+                                HStack{
+                                    TextField("Task", text: $titleText)
                                     .focused($editTextIsFocused)
+                                    //.lineLimit(1)
+                                    //.truncationMode(.tail)
+                                    .frame(width: 220)
                                     .submitLabel(.done)
                                     .onAppear {
                                         titleText = habit.title ?? ""
@@ -94,6 +100,8 @@ struct HabitDetailView: View {
                                     .onAppear{
                                         originalText = habit.title ?? ""
                                     }
+                                    Spacer()
+                            }
                                 
                                 if editTextIsFocused {
                                     Text("(\(titleText.count) / 25)").foregroundStyle(.gray).font(.caption).padding(.trailing)

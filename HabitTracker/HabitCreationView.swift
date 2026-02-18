@@ -201,19 +201,33 @@ struct HabitCreationView: View {
     }
     
     var newHabitTextField: some View {
-        TextField("ex: Workout", text: $newHabitText)
-            .tint(colorScheme == .dark ? .white : .black)
-            .focused($isAddEntryFocused)
-            .padding()
-            .frame(height: 44)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-            )
-            .foregroundStyle(colorScheme == .dark ? .white : .black)
-            .onAppear{
-                isAddEntryFocused.toggle()
-            }
+        ZStack{
+            TextField("ex: Workout", text: $newHabitText)
+                .tint(colorScheme == .dark ? .white : .black)
+                .focused($isAddEntryFocused)
+                .onChange(of: newHabitText) { _, newValue in
+                    // CAP the text to 35 characters to keep the UI clean
+                    if newValue.count > 25 {
+                        newHabitText = String(newValue.prefix(25))
+                    }
+                }
+                .padding()
+                .frame(height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+                )
+                .foregroundStyle(colorScheme == .dark ? .white : .black)
+                .onAppear{
+                    isAddEntryFocused.toggle()
+                }
+                HStack{
+                    Spacer()
+                    Text("\(newHabitText.count) / 25").foregroundStyle(.white).font(.caption).offset(x: 2, y:-24)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.green).frame(width: 50, height: 20).offset(x: 2, y:-24)).padding(.trailing)
+                }
+            
+        }
     }
     
     var timeOfDayPicker: some View {
