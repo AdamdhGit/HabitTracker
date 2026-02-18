@@ -22,92 +22,58 @@ struct HabitDetailView: View {
     var body: some View {
         
         ZStack {
-            // Invisible background to catch taps
-            Color.clear
-                .contentShape(Rectangle()) // makes entire area tappable
-                
-            
         
                 ScrollView{
                     VStack{
                         VStack{
                             
-                            Spacer().frame(height: 50)
+                            Spacer().frame(height: 65)
                             
+                                     TextField("Task", text: $titleText)
+                                     .focused($editTextIsFocused)
+                                     .multilineTextAlignment(.center)
+                                     .frame(width: 250)
+                                     .submitLabel(.done)
+                                     .onAppear {
+                                         titleText = habit.title ?? ""
+                                     }
+                                     
+                                     .font(.title3)
+                                     .onSubmit {
+                                         
+                                         if titleText.trimmingCharacters(in: .whitespacesAndNewlines) != "" {
+                                       
+                                             editTextIsFocused = false
+                                             
+                                             habit.title = titleText
+                                             try? moc.save()
+                                             
+                                         } else {
+                                             editTextIsFocused = false
+                                             titleText = originalText
+                                         }
+                                     }
+                                     .onAppear{
+                                         originalText = habit.title ?? ""
+                                     }
                            
                             
                             //title/edit title
                             HStack{
                                 
-                                if editTextIsFocused {
-                                    Button{
-                                        withAnimation{
-                                            editTextIsFocused = false
-                                        }
-                                        habit.title = titleText
-                                        try? moc.save()
-                                    }label:{
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 20))
-                                            .frame(width: 50, height: 50) // Apple minimum hit target
-                                            .contentShape(Rectangle())    // entire 44x44 is tappable
-                                    }
-                                    .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                                    .tint(colorScheme == .dark ? .white : .black)
-                                } else {
-                                    Button{
-                                        withAnimation{
-                                            editTextIsFocused = true
-                                        }
-                                    }label:{
-                                        Image(systemName: "pencil")
-                                            .font(.system(size: 20))
-                                            .frame(width: 50, height: 50) // Apple minimum hit target
-                                            .contentShape(Rectangle())    // entire 44x44 is tappable
-                                    }
-                                    .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                                    .tint(colorScheme == .dark ? .white : .black)
-                                }
                                 
-                                HStack{
-                                    TextField("Task", text: $titleText)
-                                    .focused($editTextIsFocused)
-                                    //.lineLimit(1)
-                                    //.truncationMode(.tail)
-                                    .frame(width: 200)
-                                    .submitLabel(.done)
-                                    .onAppear {
-                                        titleText = habit.title ?? ""
-                                    }
-                                    .onChange(of: titleText) { _, newValue in
-                                        // CAP the text to 35 characters to keep the UI clean
-                                        if newValue.count > 25 {
-                                            titleText = String(newValue.prefix(25))
-                                        }
-                                    }
-                                    .font(.title3)
-                                    .onSubmit {
-                                        
-                                        if titleText.trimmingCharacters(in: .whitespacesAndNewlines) != "" {
-                                            editTextIsFocused.toggle()
-                                            
-                                            habit.title = titleText
-                                            try? moc.save()
-                                        } else {
-                                            titleText = originalText
-                                        }
-                                    }
-                                    .onAppear{
-                                        originalText = habit.title ?? ""
-                                    }
+                              
+                           
                                     Spacer()
-                            }
+                            
                                 
-                                if editTextIsFocused {
-                                    Text("(\(titleText.count) / 25)").foregroundStyle(.gray).font(.caption).padding(.trailing)
-                                }
+                              
+                               
                                 
-                            }.frame(height:50).padding(.horizontal)
+                                
+                            }.padding(.horizontal)
+                               
+                              
                             
                             //graphs
                             HabitMonthCarouselView(habit: habit).padding(.top, 20)
@@ -168,6 +134,9 @@ struct HabitDetailView: View {
                 HStack{
                     Spacer()
                     Button{
+                
+                            editTextIsFocused = false
+                        
                         dismiss()
                     }label:{
                         Image(systemName: "xmark")
