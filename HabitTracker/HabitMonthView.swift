@@ -32,22 +32,30 @@ struct HabitMonthView: View {
         }
     }
     
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    //private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    
+    private let columns = Array(
+        repeating: GridItem(.fixed(40), spacing: 5),
+        count: 7
+    )
+     
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 4) {
+        LazyVGrid(columns: columns) {
             ForEach(daysInMonth, id: \.self) { day in
                 Rectangle()
                     .fill(isCompleted(on: day) ? Color.green : Color.gray.opacity(0.3))
-                    .frame(height: 40)
+                    .frame(width: 40, height: 40)
                     .cornerRadius(6)
+                    
                     .overlay(
                         Text("\(calendar.component(.day, from: day))")
                             .font(.caption)
                             .foregroundColor(.primary)
                     )
+                     
             }
-        }
+        }.environment(\.layoutDirection, .leftToRight)
     }
 }
 

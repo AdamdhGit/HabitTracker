@@ -44,6 +44,7 @@ struct HabitRow: View {
             
             Spacer()
             
+            
             if habit.notificationsEnabled {
                 Image(systemName: "bell")
                     .font(.callout)
@@ -72,6 +73,16 @@ struct HabitRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 
+                //clear notifications of object
+                        if let baseId = habit.id?.uuidString {
+                            let center = UNUserNotificationCenter.current()
+                            // Remove the main ID and all 7 weekday variations
+                            let identifiersToRemove = [baseId] + (1...7).map { "\(baseId)-\($0)" }
+                            center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+                            print("🗑️ Cleaned up notifications for: \(habit.title ?? "Habit")")
+                        }
+            
+                //delete object
                 moc.delete(habit)
                 try? moc.save()
                 

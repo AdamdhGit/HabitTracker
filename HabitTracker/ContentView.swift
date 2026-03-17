@@ -11,6 +11,8 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @State var refreshStateAfterEdit:Bool = false
+    
     @Environment(\.scenePhase) var scenePhase
     
     let isIPad = UIDevice.current.userInterfaceIdiom == .pad
@@ -33,7 +35,7 @@ struct ContentView: View {
     
     @State private var showHabitCreation = false
     
-    @FocusState var isAddEntryFocused: Bool
+    //@FocusState var isAddEntryFocused: Bool
     
     @State private var showWobble = false
     
@@ -174,6 +176,7 @@ struct ContentView: View {
                                                 .listRowInsets(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 10))
                                                 .listRowBackground(Color.clear)
                                                 .listRowSeparator(.hidden)
+                                                
 
                                         //just as fast, just edit icon is hidden briefly rather than showing. either way theres a delay to handle the entire screens views being redrawn on a change. normal SwiftUI behavior.
                                         
@@ -189,17 +192,19 @@ struct ContentView: View {
                         
                         
                     }
+                    .id(refreshStateAfterEdit)
                     .environment(\.defaultMinListRowHeight, 1)
                     .listStyle(.plain)
                     .environment(\.editMode, $editMode)
                     .scrollIndicators(.hidden)
                 }
-                if !showHabitCreation{
+            
                     // Floating bottom-center button
+                if !showHabitCreation {
                     createHabitPlusButton
                 }
                 
-                if !showHabitCreation {
+               
                     //MARK: menu button
                     VStack{
                         HStack{
@@ -222,7 +227,7 @@ struct ContentView: View {
                         }.frame(height: 44).padding(.trailing)
                         Spacer()
                     }
-                }
+                
                 
                 //MARK: date picker background tap off
                 if showPicker {
@@ -263,7 +268,7 @@ struct ContentView: View {
                 
                 
                 
-                if !showHabitCreation {
+              
                     //MARK: date picker button and progress circles
                     VStack{
                         HStack{
@@ -300,9 +305,10 @@ struct ContentView: View {
                         
                         Spacer()
                     }
-                }
                 
-                if showHabitCreation {
+                
+              /*
+               //habit creation old
                     VStack{
                         //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
                         HabitCreationView(showHabitCreation: $showHabitCreation,
@@ -330,7 +336,7 @@ struct ContentView: View {
                     }
                     .ignoresSafeArea(.keyboard)
                     
-                }
+                */
                 
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -351,8 +357,45 @@ struct ContentView: View {
             .onChange(of: selectedDate, {
                 updateHabitCount()
             })
+        /*
             .sheet(item: $selectedHabitForDetail) { habit in
+                HabitDetailView(habit: habit, refreshStateAfterEdit: $refreshStateAfterEdit)
+            }
+         */
+            .fullScreenCover(item: $selectedHabitForDetail) { habit in
                 HabitDetailView(habit: habit)
+                    .presentationBackground(.clear)
+                .onDisappear {
+                    // Force whatever refresh logic you need
+                    refreshStateAfterEdit.toggle()
+                }
+            }
+            .fullScreenCover(isPresented: $showHabitCreation) {
+             
+                    //MARK: last step to push view right onto top of keyboard is this Spacer and not one at the bottom
+                    HabitCreationView(showHabitCreation: $showHabitCreation)
+                    .presentationBackground(.clear)
+                /*
+                    //.frame(height: 450)
+                    .glassEffect(in: .rect(cornerRadius: 16.0))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 5)
+                    
+                    //animate new entry bouncing in
+                    .scaleEffect(x: showWobble ? 1.0 : 0.97, y: showWobble ? 1.0 : 1.03) // minimal squish
+                    .offset(y: showWobble ? 0 : 350) // slide in from bottom
+                    .opacity(showWobble ? 1 : 0)
+                    .onAppear {
+                        withAnimation(.interpolatingSpring(mass: 1.0, stiffness: 180, damping: 16, initialVelocity: 3)) {
+                            showWobble = true
+                        }
+                    }
+                    .onDisappear {
+                        showWobble = false
+                    }
+                    
+                    */
+              
             }
             
         
@@ -398,7 +441,7 @@ struct ContentView: View {
             Button {
                 
                 showHabitCreation = true
-                isAddEntryFocused = true
+                //isAddEntryFocused = true
                 
                 
             } label: {
@@ -462,8 +505,6 @@ struct ContentView: View {
         let weekday = calendar.component(.weekday, from: selectedDate)
         
         return habits.filter { habit in
-            
-            if habit.isRepeating {
                 
                 switch weekday {
                 case 1: return habit.onSunday
@@ -476,12 +517,7 @@ struct ContentView: View {
                 default: return false
                 }
                 
-            } else {
-                if let specificDate = habit.specificDate {
-                    return Calendar.current.isDate(specificDate, inSameDayAs: selectedDate)
-                }
-                return false
-            }
+             
         }
     }
     
@@ -541,3 +577,5 @@ struct ContentView: View {
  }
  }
  */
+
+

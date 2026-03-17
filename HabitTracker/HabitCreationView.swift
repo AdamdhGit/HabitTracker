@@ -11,6 +11,7 @@ import UserNotifications
 
 struct HabitCreationView: View {
     
+    @Environment(\.dismiss) var dismiss
     @Binding var showHabitCreation:Bool
     
     @Environment(\.managedObjectContext) private var moc
@@ -24,7 +25,7 @@ struct HabitCreationView: View {
     @State private var newHabitTime = "Morning"
     //@State private var newHabitCategory = "Daily"
     
-    @FocusState.Binding var isAddEntryFocused: Bool
+    @FocusState var isAddEntryFocused: Bool
     
     //
     let days = ["M", "T", "W", "T", "F", "S", "S"]
@@ -36,7 +37,6 @@ struct HabitCreationView: View {
     @State private var specificTime = Date()
     
     @State private var repeatingEnabled = true
-    @State private var selectedDate = Date()
     
     @State private var notificationOffset = 0
     let notificationOptions = [
@@ -53,7 +53,13 @@ struct HabitCreationView: View {
         
         ZStack{
             
-            ScrollView{
+            Color.clear
+                .contentShape(Rectangle())
+            
+            VStack{
+                
+                Spacer().frame(height: 50)
+                
                 //X and Save
                 xAndSaveButtons.padding()
                 
@@ -66,17 +72,11 @@ struct HabitCreationView: View {
                 
                 //MARK: repeating toggle
                 VStack(alignment: .leading, spacing: 8) {
-                    repeatingToggle
+                    repeatingText
+                        
+                    displayRepeatingDays
+                        
                     
-                    if repeatingEnabled {
-                        
-                        displayRepeatingDays
-                        
-                    } else {
-                        
-                        selectSpecificDatePicker
-                        
-                    }
                 }
                 .padding()
                 .background(
@@ -117,19 +117,10 @@ struct HabitCreationView: View {
                               : Color.gray.opacity(0.1))
                 )
                 .padding(.horizontal)
-                
+                Spacer()
             }
         }
-        .onChange(of: selectedDays) { oldValue, newValue in
-            if repeatingEnabled && newValue.isEmpty {
-                repeatingEnabled = false
-            }
-        }
-        .onChange(of: repeatingEnabled, { oldValue, newValue in
-            if newValue {
-                selectedDays = Set(0...6)
-            }
-        })
+        .background(.ultraThinMaterial).ignoresSafeArea()
         .onChange(of: notificationsEnabled) { _, _ in
             withAnimation{
                 isAddEntryFocused = false
@@ -159,26 +150,28 @@ struct HabitCreationView: View {
         HStack{
             Button{
                 newHabitText = ""
-                showHabitCreation = false
+                dismiss()
             }label:{
-                Image(systemName: "x.circle")
-                    .font(.system(size: 24))
+                Image(systemName: "xmark")
+                    .font(.system(size: 16))
                 
             }
             .tint(colorScheme == .dark ? .white : .black)
             .padding(16) //increases tappable area
-            .contentShape(Circle()) //tells SwiftUI the hit shape
+            .contentShape(Rectangle()) //tells SwiftUI the hit shape
             .frame(width: 44, height: 44)
+            /*
             .background(
                 Circle()
                     .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
             )
+             */
             Spacer()
             
             Button {
                 
                 createHabit()
-                showHabitCreation = false
+                dismiss()
             } label: {
                 Text("Save")
                     .foregroundStyle(
@@ -189,17 +182,19 @@ struct HabitCreationView: View {
                 
             }
             .buttonStyle(.plain)
-            .disabled(repeatingEnabled && selectedDays.isEmpty)
+            .disabled(selectedDays.isEmpty)
             .disabled(newHabitText.trimmingCharacters(in: .whitespaces).isEmpty)
             .padding(16) //increases tappable area
             .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
             .frame(width: 70, height: 44)
+            /*
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(colorScheme == .dark
                           ? Color.black.opacity(0.3)
                           : Color.gray.opacity(0.1))
             )
+             */
             
         }
     }
@@ -215,6 +210,9 @@ struct HabitCreationView: View {
                     .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
             )
             .foregroundStyle(colorScheme == .dark ? .white : .black)
+            .onAppear{
+                isAddEntryFocused.toggle()
+            }
     }
     
     var timeOfDayPicker: some View {
@@ -236,15 +234,15 @@ struct HabitCreationView: View {
         )
     }
     
-    var repeatingToggle: some View {
+    var repeatingText: some View {
         HStack {
             Text("Repeating")
                 .foregroundStyle(.primary)
             
             Spacer()
             
-            Toggle("Repeating Toggle", isOn: $repeatingEnabled)
-                .labelsHidden()
+            //Toggle("Repeating Toggle", isOn: $repeatingEnabled)
+               // .labelsHidden()
         }.padding(.bottom, 10)
     }
     
@@ -255,6 +253,12 @@ struct HabitCreationView: View {
                 Button {
                     if selectedDays.contains(index) {
                         selectedDays.remove(index)
+                        
+                        // ✅ If that was the last one, select all
+                               if selectedDays.isEmpty {
+                                   selectedDays = Set(days.indices)
+                               }
+                        
                     } else {
                         selectedDays.insert(index)
                     }
@@ -280,18 +284,6 @@ struct HabitCreationView: View {
             }
             Spacer()
         }
-    }
-    
-    var selectSpecificDatePicker: some View {
-        DatePicker(
-            selection: $selectedDate,
-            displayedComponents: .date
-        ) {
-            Text("Select Date")
-                .foregroundStyle(colorScheme == .dark ? .white : .black)
-        }
-        .datePickerStyle(.compact) // closest to menu-style UX
-        .tint(colorScheme == .dark ? .white : .black)
     }
     
     var timeToggle: some View {
@@ -351,28 +343,26 @@ struct HabitCreationView: View {
     func createHabit() {
         
         let newItem = Habit(context: moc)
-            newItem.title = newHabitText
-            newItem.time = newHabitTime
-            newItem.id = UUID()
+            newItem.title = newHabitText //done
+            newItem.time = newHabitTime //done
+            newItem.id = UUID() //done (not needed)
+            newItem.dateCreated = Date()
         
-        newItem.isRepeating = repeatingEnabled
-        
-        if hasSpecificTime {
-            newItem.visualTime = specificTime
+        if hasSpecificTime { //done
+            newItem.visualTime = specificTime //done
         } else {
             newItem.visualTime = nil
         }
         
-        if notificationsEnabled {
-            newItem.notificationsEnabled = true
-            newItem.notificationTime = specificTime
-            newItem.notificationOffset = Int16(notificationOffset)
+        if notificationsEnabled { //done
+            newItem.notificationsEnabled = true //done
+            newItem.notificationTime = specificTime //done
+            newItem.notificationOffset = Int16(notificationOffset) //done
         } else {
             newItem.notificationsEnabled = false
             newItem.notificationTime = nil
         }
         
-        if repeatingEnabled {
             //the set just takes into account the index which matches the value of the days. its not looking at the day value, but by matching the index its the equivalent of matching the day value. and assigning whether each day is true in the actual object below.
                
                // Save weekday booleans
@@ -383,51 +373,23 @@ struct HabitCreationView: View {
                newItem.onFriday = selectedDays.contains(4)
                newItem.onSaturday = selectedDays.contains(5)
                newItem.onSunday = selectedDays.contains(6)
-               
-               newItem.specificDate = nil
-               
-           } else {
-               
-               // Save specific date
-               newItem.specificDate = Calendar.current.startOfDay(for: selectedDate)
-               
-               // Turn off all weekday flags
-               newItem.onMonday = false
-               newItem.onTuesday = false
-               newItem.onWednesday = false
-               newItem.onThursday = false
-               newItem.onFriday = false
-               newItem.onSaturday = false
-               newItem.onSunday = false
-           }
-            //newItem.category = newHabitCategory
+
         
- 
-        
-        // Create the nested completion entity
+        // Create the nested completion entity at start to get calendars showing
+        /*
           let completion = HabitCompletion(context: moc)
           completion.id = UUID()
           completion.isCompleted = false
-          completion.date = Calendar.current.startOfDay(for: selectedDate)
           completion.habit = newItem // link it
+        */
         
         try? moc.save()
-
-
         
         if newItem.notificationsEnabled {
             
-            if let id = newItem.id?.uuidString {
-                   UNUserNotificationCenter.current()
-                       .removePendingNotificationRequests(withIdentifiers: [id])
-               }
-            //prevents duplicate notifications
-            
-            if newItem.isRepeating {
+      
                 scheduleRepeatingNotification(for: newItem)
-            } else {
-                scheduleSingleDayNotification(for: newItem)
-            }
+           
             
             print("notification scheduled")
         }
@@ -446,138 +408,84 @@ struct HabitCreationView: View {
     }
     
     func scheduleRepeatingNotification(for habit: Habit) {
-        guard habit.notificationsEnabled else { return }
-        guard let time = habit.notificationTime else { return }
+        let center = UNUserNotificationCenter.current()
+        guard let baseId = habit.id?.uuidString else {
+            print("❌ Notification Error: Habit has no ID")
+            return
+        }
+
+        // 1. CLEAR: Remove all 7 potential weekday slots + the base ID
+        let identifiersToRemove = (1...7).map { "\(baseId)-\($0)" } + [baseId]
+        center.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+
+        // 2. CHECK: Only proceed if enabled and time exists
+        guard habit.notificationsEnabled, let time = habit.notificationTime else {
+            print("ℹ️ Notifications disabled or no time set for: \(habit.title ?? "")")
+            return
+        }
 
         let calendar = Calendar.current
-
-        // Extract hour + minute from stored time
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
-
-        // Build a temporary full date using today
-        var todayComponents = calendar.dateComponents([.year, .month, .day], from: Date())
-        todayComponents.hour = timeComponents.hour
-        todayComponents.minute = timeComponents.minute
-
-        guard let todayDate = calendar.date(from: todayComponents) else { return }
-
-        // Apply offset
         let offsetMinutes = Int(habit.notificationOffset)
-        let adjustedDate = calendar.date(byAdding: .minute,
-                                         value: -offsetMinutes,
-                                         to: todayDate) ?? todayDate
 
-        // Extract final hour/minute
-        let finalComponents = calendar.dateComponents([.hour, .minute], from: adjustedDate)
+        // 3. MAPPING: Match your Core Data booleans to iOS Weekdays (Sun=1, Sat=7)
+        var selectedWeekdays: [Int] = []
+        if habit.onSunday { selectedWeekdays.append(1) }
+        if habit.onMonday { selectedWeekdays.append(2) }
+        if habit.onTuesday { selectedWeekdays.append(3) }
+        if habit.onWednesday { selectedWeekdays.append(4) }
+        if habit.onThursday { selectedWeekdays.append(5) }
+        if habit.onFriday { selectedWeekdays.append(6) }
+        if habit.onSaturday { selectedWeekdays.append(7) }
 
+        guard !selectedWeekdays.isEmpty else {
+            print("⚠️ No days selected for: \(habit.title ?? "")")
+            return
+        }
+
+        // 4. CONTENT
         let content = UNMutableNotificationContent()
         content.title = habit.title ?? "Habit Reminder"
         if offsetMinutes > 0 {
-            content.body = "In \(offsetMinutes == 60 ? 1 : offsetMinutes) \(offsetMinutes == 60 ? "Hour" : "Minutes")"
+            let unit = offsetMinutes == 60 ? "hour" : "minutes"
+            let value = offsetMinutes == 60 ? 1 : offsetMinutes
+            content.body = "Reminder: \(habit.title ?? "Habit") in \(value) \(unit)"
+        } else {
+            content.body = "Time for: \(habit.title ?? "your habit")!"
         }
         content.sound = .default
 
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: finalComponents,
-            repeats: true
-        )
+        // 5. SCHEDULE PER DAY
+        for weekday in selectedWeekdays {
+            // Calculate the adjusted time based on the offset
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+            
+            // Use a dummy date to safely subtract the offset minutes
+            if let dummyDate = calendar.date(from: timeComponents),
+               let adjustedDate = calendar.date(byAdding: .minute, value: -offsetMinutes, to: dummyDate) {
+                
+                var finalTriggerComponents = DateComponents()
+                finalTriggerComponents.weekday = weekday
+                finalTriggerComponents.hour = calendar.component(.hour, from: adjustedDate)
+                finalTriggerComponents.minute = calendar.component(.minute, from: adjustedDate)
 
-        let request = UNNotificationRequest(
-            identifier: habit.id?.uuidString ?? UUID().uuidString,
-            content: content,
-            trigger: trigger
-        )
+                let trigger = UNCalendarNotificationTrigger(dateMatching: finalTriggerComponents, repeats: true)
+                let request = UNNotificationRequest(
+                    identifier: "\(baseId)-\(weekday)",
+                    content: content,
+                    trigger: trigger
+                )
 
-        UNUserNotificationCenter.current().add(request)
-    }
-
-
-    
-    func scheduleSingleDayNotification(for habit: Habit) {
-        guard habit.notificationsEnabled else { return }
-        guard let time = habit.notificationTime else { return }
-        guard let specificDate = habit.specificDate else { return }
-
-        let calendar = Calendar.current
-
-        // 1️⃣ Extract hour + minute from stored time
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
-
-        // 2️⃣ Combine specific date with selected time
-        var dateComponents = calendar.dateComponents([.year, .month, .day], from: specificDate)
-        dateComponents.hour = timeComponents.hour
-        dateComponents.minute = timeComponents.minute
-
-        guard let fullDate = calendar.date(from: dateComponents) else { return }
-
-        // 3️⃣ Apply offset
-        let offsetMinutes = Int(habit.notificationOffset)
-        let finalDate = calendar.date(byAdding: .minute,
-                                       value: -offsetMinutes,
-                                       to: fullDate) ?? fullDate
-
-        // 4️⃣ Prevent scheduling past notifications
-        guard finalDate > Date() else { return }
-
-        // 5️⃣ Create content
-        let content = UNMutableNotificationContent()
-        content.title = habit.title ?? "Habit Reminder"
-        if offsetMinutes > 0 {
-            content.body = "In \(offsetMinutes == 60 ? 1 : offsetMinutes) \(offsetMinutes == 60 ? "Hour" : "Minutes")"
+                center.add(request) { error in
+                    if let error = error {
+                        print("❌ Error scheduling weekday \(weekday): \(error.localizedDescription)")
+                    } else {
+                        print("✅ Scheduled: \(habit.title ?? "") for weekday \(weekday) at \(finalTriggerComponents.hour!):\(finalTriggerComponents.minute!)")
+                    }
+                }
+            }
         }
-        content.sound = .default
-
-        // 6️⃣ Create trigger (single fire)
-        let trigger = UNCalendarNotificationTrigger(
-            dateMatching: calendar.dateComponents(
-                [.year, .month, .day, .hour, .minute],
-                from: finalDate
-            ),
-            repeats: false
-        )
-
-        let request = UNNotificationRequest(
-            identifier: habit.id?.uuidString ?? UUID().uuidString,
-            content: content,
-            trigger: trigger
-        )
-
-        UNUserNotificationCenter.current().add(request)
     }
-
     
     
 }
-
-#Preview {
-    
-    let dataController = DataController()
-    
-    // Pass its context into ContentView
-    HabitCreationView(showHabitCreation: .constant(false), isAddEntryFocused: FocusState<Bool>().projectedValue).environment(\.managedObjectContext, dataController.container.viewContext)
-}
-
-//MARK: daily/goals picker
-/*
-HStack{
-    Picker(selection: $newHabitCategory) {
-        ForEach(categories, id: \.self) { category in
-            Text(category)                  // this is each option
-        }
-    } label: {
-        Text("Category")            // the visible label for the picker
-            .foregroundStyle(colorScheme == .dark ? .white : .black)
-        
-    }
-    .pickerStyle(.menu)
-    .tint(colorScheme == .dark ? .white : .black)
-    .background(
-        RoundedRectangle(cornerRadius: 12)
-            .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-            .frame(height: 44)
-    )
-    
-    Spacer()
-}.padding(.horizontal).padding(.bottom, 10)
-*/
 
