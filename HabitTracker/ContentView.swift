@@ -197,8 +197,23 @@ struct ContentView: View {
                     .listStyle(.plain)
                     .environment(\.editMode, $editMode)
                     .scrollIndicators(.hidden)
+                   
                 }
-            
+                .mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            // Top: Clear until the toolbar ends (approx 12%)
+                            .init(color: .clear, location: 0),
+                            .init(color: .black, location: 0.08), // Fades in content below bar
+                            
+                            // Bottom: Solid until the home indicator area (approx 92%)
+                            .init(color: .black, location: 0.9), // Fades out before bottom edge
+                            .init(color: .clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ).ignoresSafeArea(edges: .bottom)
+                )
                     // Floating bottom-center button
                 if !showHabitCreation {
                     createHabitPlusButton

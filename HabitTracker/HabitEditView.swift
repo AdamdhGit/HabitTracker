@@ -140,7 +140,6 @@ struct HabitEditView: View {
                 
                 if habit.notificationsEnabled {
                            habit.notificationTime = specificTime
-                           scheduleRepeatingNotification(for: habit)
                        }
                 
             } else {
@@ -149,15 +148,9 @@ struct HabitEditView: View {
                 notificationsEnabled = false
                 habit.notificationTime = nil
                 
-                if let baseId = habit.id?.uuidString {
-                    let identifiersToRemove =
-                        (1...7).map { "\(baseId)-\($0)" } + [baseId]
-
-                    UNUserNotificationCenter.current()
-                        .removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
-                }
-                
             }
+            
+            scheduleRepeatingNotification(for: habit)
             
             try? moc.save()
         }
@@ -169,7 +162,6 @@ struct HabitEditView: View {
                             habit.notificationTime = newValue
 
                                 scheduleRepeatingNotification(for: habit)
-                         
                     
                         }
                 
@@ -198,13 +190,13 @@ struct HabitEditView: View {
                 habit.onSaturday = selectedDays.contains(5)
                 habit.onSunday = selectedDays.contains(6)
 
-                try? moc.save()
-                
-                // updates notification schedule when days change
-                        if habit.notificationsEnabled {
-                            scheduleRepeatingNotification(for: habit)
-                        }
-                
+            try? moc.save()
+
+                scheduleRepeatingNotification(for: habit)
+            //saves new days to notifications and removes old within function.
+            //days removed and notifications off? function still calls and removes them given the guard in functions to ensure notifications enabled.
+            
+            
             
         }
         .onChange(of: notificationsEnabled) { _, newValue in
@@ -224,16 +216,11 @@ struct HabitEditView: View {
             } else {
                 habit.notificationTime = nil
                 
-                if let baseId = habit.id?.uuidString {
-                    let identifiersToRemove =
-                        (1...7).map { "\(baseId)-\($0)" } + [baseId]
-
-                    UNUserNotificationCenter.current()
-                        .removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
-                }
-                
             }
 
+            // This function will clear the old ones for you, and exit if notificationsEnabled is false.
+            scheduleRepeatingNotification(for: habit)
+            
             try? moc.save()
         }
         

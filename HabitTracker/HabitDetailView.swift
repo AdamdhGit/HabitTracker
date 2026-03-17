@@ -103,7 +103,7 @@ struct HabitDetailView: View {
                         .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
                         .padding(.trailing)
                         .tint(colorScheme == .dark ? .white : .black)
-                    }
+                    }.padding(.top, 20)
                     
                     //graphs
                     HabitMonthCarouselView(habit: habit).padding(.top, 20)
@@ -112,11 +112,27 @@ struct HabitDetailView: View {
                     HabitEditView(habit: habit).padding(.horizontal)
                     
                     
-                    Spacer().frame(height: 150)
+                    Spacer().frame(height: 120)
                 }
                 Spacer()
-            }
+            }.mask(
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        // Top: Clear until the toolbar ends (approx 12%)
+                        //.init(color: .clear, location: 0),
+                        .init(color: .clear, location: 0.06), // Keeps toolbar area clear
+                        .init(color: .black, location: 0.1), // Fades in content below bar
+                        
+                        // Bottom: Solid until the home indicator area (approx 92%)
+                        .init(color: .black, location: 0.9), // Fades out before bottom edge
+                        .init(color: .clear, location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
         }.background(.ultraThinMaterial).ignoresSafeArea()
+          
           
     }
 }
