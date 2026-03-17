@@ -26,112 +26,131 @@ struct HabitDetailView: View {
             Color.clear
                 .contentShape(Rectangle()) // makes entire area tappable
                 
-            ScrollView{
-                VStack{
-                    
-                    Spacer().frame(height: 50)
-                    
-                    //title/edit title
-                    HStack{
-                        
-                        if editTextIsFocused {
-                            Button{
-                                editTextIsFocused.toggle()
+            
+        
+                ScrollView{
+                    VStack{
+                        VStack{
+                            
+                            Spacer().frame(height: 50)
+                            
+                           
+                            
+                            //title/edit title
+                            HStack{
                                 
-                                habit.title = titleText
-                                try? moc.save()
-                            }label:{
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 20))
-                                    .frame(width: 50, height: 50) // Apple minimum hit target
-                                    .contentShape(Rectangle())    // entire 44x44 is tappable
-                            }
-                            .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                            .padding(.leading)
-                            .tint(colorScheme == .dark ? .white : .black)
-                        } else {
-                            Button{
-                                editTextIsFocused.toggle()
-                            }label:{
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 20))
-                                    .frame(width: 50, height: 50) // Apple minimum hit target
-                                    .contentShape(Rectangle())    // entire 44x44 is tappable
-                            }
-                            .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                            .padding(.leading)
-                            .tint(colorScheme == .dark ? .white : .black)
-                        }
-                        
-                        
-                        TextField("Task", text: $titleText)
-                            .focused($editTextIsFocused)
-                            .onAppear {
-                                titleText = habit.title ?? ""
-                            }
-                            .frame(width: 255)
-                            .font(.title3)
-                            .padding(.horizontal)
-                            .onSubmit {
-                                
-                                if titleText.trimmingCharacters(in: .whitespacesAndNewlines) != "" {
-                                    editTextIsFocused.toggle()
-                                    
-                                    habit.title = titleText
-                                    try? moc.save()
+                                if editTextIsFocused {
+                                    Button{
+                                        editTextIsFocused.toggle()
+                                        
+                                        habit.title = titleText
+                                        try? moc.save()
+                                    }label:{
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 20))
+                                            .frame(width: 50, height: 50) // Apple minimum hit target
+                                            .contentShape(Rectangle())    // entire 44x44 is tappable
+                                    }
+                                    .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
+                                    .padding(.leading)
+                                    .tint(colorScheme == .dark ? .white : .black)
                                 } else {
-                                    titleText = originalText
+                                    Button{
+                                        editTextIsFocused.toggle()
+                                    }label:{
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 20))
+                                            .frame(width: 50, height: 50) // Apple minimum hit target
+                                            .contentShape(Rectangle())    // entire 44x44 is tappable
+                                    }
+                                    .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
+                                    .padding(.leading)
+                                    .tint(colorScheme == .dark ? .white : .black)
                                 }
-                            }
-                            .onAppear{
-                                originalText = habit.title ?? ""
-                            }
-                        
-                        
-                        
-                        
-                        Spacer()
-                        
-                        Button{
-                            dismiss()
-                        }label:{
-                            Image(systemName: "xmark")
-                                .font(.system(size: 18))
-                                .frame(width: 50, height: 50) // Apple minimum hit target
-                                .contentShape(Rectangle())    // entire 44x44 is tappable
+                                
+                                
+                                TextField("Task", text: $titleText)
+                                    .focused($editTextIsFocused)
+                                    .submitLabel(.done)
+                                    .onAppear {
+                                        titleText = habit.title ?? ""
+                                    }
+                                    .onChange(of: titleText) { _, newValue in
+                                        // CAP the text to 35 characters to keep the UI clean
+                                        if newValue.count > 25 {
+                                            titleText = String(newValue.prefix(25))
+                                        }
+                                    }
+                                    .font(.title3)
+                                    .onSubmit {
+                                        
+                                        if titleText.trimmingCharacters(in: .whitespacesAndNewlines) != "" {
+                                            editTextIsFocused.toggle()
+                                            
+                                            habit.title = titleText
+                                            try? moc.save()
+                                        } else {
+                                            titleText = originalText
+                                        }
+                                    }
+                                    .onAppear{
+                                        originalText = habit.title ?? ""
+                                    }
+                                
+                                if editTextIsFocused {
+                                    Text("(\(titleText.count) / 25)").foregroundStyle(.gray).font(.caption).padding(.trailing)
+                                }
+                                
+                            }.frame(height:50).padding(.horizontal)
+                            
+                            //graphs
+                            HabitMonthCarouselView(habit: habit).padding(.top, 20)
+                            
+                            //edits
+                            HabitEditView(habit: habit).padding(.horizontal)
+                            
+                            
+                            Spacer().frame(height: 120)
                         }
-                        .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
-                        .padding(.trailing)
-                        .tint(colorScheme == .dark ? .white : .black)
-                    }.padding(.top, 20)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
                     
-                    //graphs
-                    HabitMonthCarouselView(habit: habit).padding(.top, 20)
-                    
-                    //edits
-                    HabitEditView(habit: habit).padding(.horizontal)
-                    
-                    
-                    Spacer().frame(height: 120)
+                }.mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            // Top: Clear until the toolbar ends (approx 12%)
+                            .init(color: .clear, location: 0),
+                            .init(color: .black, location: 0.12), // Fades in content below bar
+                            
+                            // Bottom: Solid until the home indicator area (approx 92%)
+                            .init(color: .black, location: 0.85), // Fades out before bottom edge
+                            .init(color: .clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ).ignoresSafeArea(edges: .bottom)
+                )
+            
+            VStack{
+                HStack{
+                    Spacer()
+                    Button{
+                        dismiss()
+                    }label:{
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18))
+                            .frame(width: 50, height: 50) // Apple minimum hit target
+                            .contentShape(Rectangle())    // entire 44x44 is tappable
+                    }
+                    .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
+                    .padding(.trailing)
+                    .tint(colorScheme == .dark ? .white : .black)
                 }
                 Spacer()
-            }.mask(
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        // Top: Clear until the toolbar ends (approx 12%)
-                        //.init(color: .clear, location: 0),
-                        .init(color: .clear, location: 0.06), // Keeps toolbar area clear
-                        .init(color: .black, location: 0.1), // Fades in content below bar
-                        
-                        // Bottom: Solid until the home indicator area (approx 92%)
-                        .init(color: .black, location: 0.9), // Fades out before bottom edge
-                        .init(color: .clear, location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-        }.background(.ultraThinMaterial).ignoresSafeArea()
+            }.padding(.trailing)
+            
+        }.background(.ultraThinMaterial)
           
           
     }

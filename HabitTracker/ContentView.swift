@@ -202,12 +202,17 @@ struct ContentView: View {
                 .mask(
                     LinearGradient(
                         gradient: Gradient(stops: [
-                            // Top: Clear until the toolbar ends (approx 12%)
+                            // 1. Keep Top Bar (Time/Battery/Status) completely hidden/clear
                             .init(color: .clear, location: 0),
-                            .init(color: .black, location: 0.08), // Fades in content below bar
+                            //.init(color: .clear, location: 0.06), // Transparent until end of status bar
+                            .init(color: .clear, location: 0.01),
+                            // 2. Fade in content (Today / Arrows) quickly but smoothly
+                            .init(color: .black, location: 0.12), // Fully opaque before headers hit the top
                             
-                            // Bottom: Solid until the home indicator area (approx 92%)
-                            .init(color: .black, location: 0.9), // Fades out before bottom edge
+                            // 3. Main content area stays solid
+                            .init(color: .black, location: 0.90),
+                            
+                            // 4. Smooth bottom fade-out
                             .init(color: .clear, location: 1.0)
                         ]),
                         startPoint: .top,
