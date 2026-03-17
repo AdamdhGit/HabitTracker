@@ -105,6 +105,12 @@ struct HabitDetailView: View {
                             
                             //graphs
                             HabitMonthCarouselView(habit: habit).padding(.top, 20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+                                        
+                                ).padding(.horizontal).padding(.horizontal)
+                                .padding(.bottom, 20)
                             
                             //edits
                             HabitEditView(habit: habit).padding(.horizontal)
@@ -141,7 +147,7 @@ struct HabitDetailView: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 18))
                             .frame(width: 50, height: 50) // Apple minimum hit target
-                            .contentShape(Rectangle())    // entire 44x44 is tappable
+                            .contentShape(Rectangle())    // entire 50x50 is tappable
                     }
                     .disabled(titleText.trimmingCharacters(in: .whitespacesAndNewlines) == "")
                     .padding(.trailing)

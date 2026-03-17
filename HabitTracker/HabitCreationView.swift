@@ -153,13 +153,12 @@ struct HabitCreationView: View {
                 dismiss()
             }label:{
                 Image(systemName: "xmark")
-                    .font(.system(size: 16))
+                    .font(.system(size: 18))
+                    .frame(width: 50, height: 50) // Apple minimum hit target
+                    .contentShape(Rectangle())    // entire 50x50 is tappable
                 
             }
             .tint(colorScheme == .dark ? .white : .black)
-            .padding(16) //increases tappable area
-            .contentShape(Rectangle()) //tells SwiftUI the hit shape
-            .frame(width: 44, height: 44)
             /*
             .background(
                 Circle()
@@ -174,19 +173,21 @@ struct HabitCreationView: View {
                 dismiss()
             } label: {
                 Text("Save")
+                    .font(.title3)
                     .foregroundStyle(
                         newHabitText.trimmingCharacters(in: .whitespaces).isEmpty
                         ? .gray
                         : .green
                     )
+                    .frame(width: 70, height: 50)
+                    .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
+                    
                 
             }
             .buttonStyle(.plain)
             .disabled(selectedDays.isEmpty)
             .disabled(newHabitText.trimmingCharacters(in: .whitespaces).isEmpty)
-            .padding(16) //increases tappable area
-            .contentShape(RoundedRectangle(cornerRadius: 12)) //tells SwiftUI the hit shape
-            .frame(width: 70, height: 44)
+           
             /*
             .background(
                 RoundedRectangle(cornerRadius: 12)

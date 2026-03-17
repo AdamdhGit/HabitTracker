@@ -62,6 +62,7 @@ struct HabitMonthCarouselView: View {
         .tabViewStyle(.page(indexDisplayMode: .automatic))
         .environment(\.layoutDirection, .rightToLeft)
         .frame(height: 340)
+        
     }
     
     private func monthTitle(for date: Date) -> String {

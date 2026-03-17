@@ -57,10 +57,20 @@ struct HabitEditView: View {
                 HStack {
                     
                     timeOfDayPicker
+                        .frame(height: 44)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
+                                
+                        )
+                       
                     Spacer()
                     //saveButton.padding()
                     
-                }.padding(.horizontal).padding(.bottom, 15)
+                }
+                    
+                    .padding(.horizontal)
+                
                 
                 //MARK: repeating toggle
                 VStack(alignment: .leading, spacing: 8) {
@@ -239,11 +249,6 @@ struct HabitEditView: View {
         }
         .pickerStyle(.menu)
         .tint(colorScheme == .dark ? .white : .black)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(colorScheme == .dark ? Color.black.opacity(0.3) : Color.gray.opacity(0.1))
-                .frame(height: 44)
-        )
 
     }
     
